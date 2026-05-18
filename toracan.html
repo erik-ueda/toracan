@@ -20,8 +20,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Segoe UI',sa
 .home-hero::before{content:'';position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:var(--red);border-radius:50%;opacity:.15;}
 .home-hero::after{content:'';position:absolute;bottom:-80px;left:-50px;width:250px;height:250px;background:var(--red);border-radius:50%;opacity:.08;}
 .logo-wrap{position:relative;z-index:1;display:inline-block;margin-bottom:.8rem;}
-.logo-title{font-size:52px;font-weight:900;color:var(--red);letter-spacing:-.02em;line-height:1;display:block;font-style:italic;}
-.logo-sub{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.2em;text-transform:uppercase;margin-top:4px;}
+.logo-title{font-size:76px;font-weight:900;color:var(--red);letter-spacing:-.04em;line-height:1;display:block;font-style:italic;text-shadow:3px 3px 0 rgba(0,0,0,.5);}
+.logo-title .logo-accent{color:var(--white);}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.25em;text-transform:uppercase;margin-top:6px;}
 .home-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:1rem;}
 .home-card{background:var(--white);border-radius:var(--radius-lg);padding:1.6rem 1rem 1.4rem;cursor:pointer;text-align:center;border:2px solid transparent;transition:all .15s;}
 .home-card:hover{border-color:var(--red);transform:translateY(-2px);}
@@ -227,13 +228,7 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
 <div class="page active" id="page-home">
   <div class="home-hero">
     <div class="logo-wrap">
-      <svg width="72" height="36" viewBox="0 0 72 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 6px">
-        <path d="M5 18 C5 18 0 9 9 9 C18 9 14 4 23 4 C36 4 46 11 55 18 C46 25 36 32 23 32 C14 32 18 27 9 27 C0 27 5 18 5 18Z" fill="#e8170e"/>
-        <circle cx="25" cy="14" r="2.5" fill="white"/>
-        <path d="M55 18 L68 9 L63 18 L68 27Z" fill="#e8170e"/>
-        <path d="M41 9 Q48 13 48 18 Q48 23 41 27" stroke="rgba(0,0,0,.25)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      </svg>
-      <span class="logo-title">トラカン</span>
+      <span class="logo-title">トラ<span class="logo-accent">カン</span></span>
       <div class="logo-sub">TROUT COUNTER</div>
     </div>
   </div>
