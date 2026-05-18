@@ -6,417 +6,445 @@
 <title>トラカン</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:15px;}
-.app{max-width:700px;margin:0 auto;padding:1rem;}
-
-/* ── ページ切り替え ── */
+:root{
+  --red:#e8170e;--black:#0f0f0f;--white:#ffffff;
+  --gray:#f4f4f4;--gray2:#e8e8e8;--gray3:#999;
+  --text:#1a1a1a;--border:#e0e0e0;--radius:10px;--radius-lg:16px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Segoe UI',sans-serif;background:var(--gray);color:var(--text);font-size:15px;min-height:100vh;}
+.app{max-width:680px;margin:0 auto;padding:0 0 2rem;}
 .page{display:none;}.page.active{display:block;}
 
-/* ── ホーム ── */
-.home-header{text-align:center;padding:2.5rem 0 2rem;}
-.home-logo{font-size:48px;margin-bottom:.5rem;}
-.home-title{font-size:28px;font-weight:800;letter-spacing:.04em;margin-bottom:.3rem;}
-.home-sub{font-size:13px;color:#888;margin-bottom:2rem;}
-.home-btns{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem;}
-.home-btn{background:#fff;border:1.5px solid #e8e8e8;border-radius:16px;padding:1.8rem 1rem;cursor:pointer;text-align:center;transition:background .15s,border-color .15s;}
-.home-btn:hover{background:#fafaf8;border-color:#ccc;}
-.home-btn:active{transform:scale(.97);}
-.home-btn-icon{font-size:36px;margin-bottom:.6rem;}
-.home-btn-label{font-size:16px;font-weight:700;margin-bottom:.3rem;}
-.home-btn-desc{font-size:12px;color:#999;line-height:1.4;}
+/* ホーム */
+.home-hero{background:var(--black);padding:2.5rem 1.5rem 2rem;text-align:center;position:relative;overflow:hidden;}
+.home-hero::before{content:'';position:absolute;top:-60px;right:-40px;width:200px;height:200px;background:var(--red);border-radius:50%;opacity:.15;}
+.home-hero::after{content:'';position:absolute;bottom:-80px;left:-50px;width:250px;height:250px;background:var(--red);border-radius:50%;opacity:.08;}
+.logo-wrap{position:relative;z-index:1;display:inline-block;margin-bottom:.8rem;}
+.logo-title{font-size:52px;font-weight:900;color:var(--red);letter-spacing:-.02em;line-height:1;display:block;font-style:italic;}
+.logo-sub{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:.2em;text-transform:uppercase;margin-top:4px;}
+.home-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:1rem;}
+.home-card{background:var(--white);border-radius:var(--radius-lg);padding:1.6rem 1rem 1.4rem;cursor:pointer;text-align:center;border:2px solid transparent;transition:all .15s;}
+.home-card:hover{border-color:var(--red);transform:translateY(-2px);}
+.home-card:active{transform:scale(.97);}
+.home-card-icon{font-size:32px;margin-bottom:.6rem;display:block;}
+.home-card-label{font-size:15px;font-weight:800;letter-spacing:.02em;margin-bottom:.3rem;}
+.home-card-desc{font-size:11px;color:var(--gray3);line-height:1.5;}
+.home-card.red{background:var(--red);}
+.home-card.red .home-card-label{color:var(--white);}
+.home-card.red .home-card-desc{color:rgba(255,255,255,.7);}
 
-/* ── 共通 ── */
-h1{font-size:17px;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
-.back-btn{padding:5px 12px;background:#fff;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#555;font-family:inherit;}
-.back-btn:hover{background:#f5f5f0;}
-.tabs{display:flex;gap:5px;margin-bottom:1.2rem;flex-wrap:wrap;}
-.tab{padding:7px 12px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;font-size:12px;font-weight:500;font-family:inherit;}
-.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+/* ページヘッダー */
+.page-header{background:var(--black);padding:.9rem 1rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;}
+.page-header-title{font-size:15px;font-weight:800;color:var(--white);flex:1;letter-spacing:.03em;}
+.page-header-back{background:rgba(255,255,255,.12);border:none;color:var(--white);font-size:12px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:inherit;}
+.page-header-back:hover{background:rgba(255,255,255,.2);}
+.page-content{padding:1rem;}
+
+/* タブ */
+.tabs{display:flex;margin-bottom:1rem;background:var(--white);border-radius:var(--radius);border:1px solid var(--border);overflow-x:auto;}
+.tab{padding:10px 12px;border:none;background:transparent;color:var(--gray3);cursor:pointer;font-size:12px;font-weight:700;font-family:inherit;white-space:nowrap;border-bottom:2px solid transparent;flex-shrink:0;}
+.tab.active{color:var(--red);border-bottom-color:var(--red);}
 .section{display:none;}.section.active{display:block;}
-.card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;}
-.card-title{font-size:14px;font-weight:600;margin-bottom:10px;color:#333;}
-.slabel{font-size:11px;font-weight:700;color:#999;letter-spacing:.06em;text-transform:uppercase;margin:10px 0 5px;}
+
+/* 共通 */
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:10px;}
+.card-title{font-size:13px;font-weight:700;margin-bottom:10px;}
+.slabel{font-size:10px;font-weight:700;color:var(--gray3);letter-spacing:.1em;text-transform:uppercase;margin:10px 0 5px;}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:7px;margin-bottom:7px;}
-input[type="text"],input[type="number"],input[type="date"],input[type="time"],select,textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:#1a1a1a;outline:none;}
-input:focus,select:focus,textarea:focus{border-color:#666;}
+input[type="text"],input[type="number"],input[type="date"],input[type="time"],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--white);color:var(--text);outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--black);}
 textarea{resize:vertical;min-height:52px;}
-.btn{padding:8px 14px;background:#fff;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:#1a1a1a;white-space:nowrap;font-family:inherit;}
-.btn:hover{background:#f5f5f0;}
-.btn:active{transform:scale(.98);}
-.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.btn{padding:8px 16px;background:var(--white);border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;font-family:inherit;transition:all .12s;}
+.btn:hover{background:var(--gray);}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--black);color:var(--white);border-color:var(--black);}
 .btn-primary:hover{background:#333;}
-.btn-green{background:#16a34a;color:#fff;border-color:#16a34a;}
-.btn-green:hover{background:#15803d;}
-.btn-red{background:#dc2626;color:#fff;border-color:#dc2626;}
-.btn-red:hover{background:#b91c1c;}
-.btn-yellow{background:#d97706;color:#fff;border-color:#d97706;}
-.btn-yellow:hover{background:#b45309;}
-.btn-info{border-color:#3b82f6;color:#3b82f6;}
-.btn-info:hover{background:#eff6ff;}
+.btn-red{background:var(--red);color:var(--white);border-color:var(--red);}
+.btn-red:hover{background:#c41208;}
+.btn-green{background:#16a34a;color:var(--white);border-color:#16a34a;}
+.btn-yellow{background:#d97706;color:var(--white);border-color:#d97706;}
+.btn-outline-red{border-color:var(--red);color:var(--red);}
+.btn-outline-red:hover{background:#fff5f5;}
 .btn-danger{color:#ef4444;border-color:#fca5a5;}
 .btn-danger:hover{background:#fef2f2;}
 .btn-sm{padding:5px 11px;font-size:12px;}
 .btn-xs{padding:3px 8px;font-size:11px;}
-.divider{height:1px;background:#f0f0f0;margin:10px 0;}
-.empty{color:#bbb;font-size:14px;padding:2.5rem 0;text-align:center;}
-.badge{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid #e8e8e8;color:#666;}
-.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
-.total-badge{font-size:12px;background:#eff6ff;color:#3b82f6;padding:3px 9px;border-radius:999px;font-weight:600;white-space:nowrap;}
+.divider{height:1px;background:var(--gray2);margin:10px 0;}
+.empty{color:#ccc;font-size:14px;padding:2.5rem 0;text-align:center;}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--gray3);}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.total-badge{font-size:12px;background:#fff0f0;color:var(--red);padding:3px 10px;border-radius:999px;font-weight:700;white-space:nowrap;}
 
-/* ── 釣果記録: タックル ── */
+/* タックル */
 .tm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-bottom:10px;}
-.tm-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:.9rem 1rem;}
-.tm-card.empty-slot{border-style:dashed;background:#fafaf8;}
+.tm-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1rem;}
+.tm-card.empty-slot{border-style:dashed;background:#fafafa;}
 .tm-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.tm-num{width:22px;height:22px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
-.tm-name{font-size:13px;font-weight:600;flex:1;}
+.tm-num{width:22px;height:22px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.tm-name{font-size:13px;font-weight:700;flex:1;}
 .tm-actions{display:flex;gap:4px;}
 .tm-fields{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;}
 .tm-field{display:flex;flex-direction:column;gap:1px;}
-.tm-key{font-size:10px;color:#999;}
+.tm-key{font-size:10px;color:var(--gray3);}
 .tm-val{font-size:12px;color:#333;}
-.edit-form{background:#f9f9f7;border-radius:8px;padding:.85rem;margin-top:8px;}
-.stb{border:1px solid #e8e8e8;border-radius:10px;padding:.8rem;margin-bottom:8px;background:#fff;}
+.edit-form{background:var(--gray);border-radius:8px;padding:.85rem;margin-top:8px;}
+.stb{border:1px solid var(--border);border-radius:var(--radius);padding:.8rem;margin-bottom:8px;background:var(--white);}
 .stb-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.stb-slot{width:20px;height:20px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
-.stb-name{font-size:13px;font-weight:600;flex:1;}
-.stb-badge{font-size:11px;color:#999;background:#f0f0f0;padding:2px 7px;border-radius:999px;}
+.stb-slot{width:20px;height:20px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.stb-name{font-size:13px;font-weight:700;flex:1;}
+.stb-badge{font-size:11px;color:var(--gray3);background:var(--gray);padding:2px 7px;border-radius:999px;}
 .stb-badge.modified{color:#d97706;background:#fef3c7;border:1px solid #fcd34d;}
 .stb-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;}
 .stb-field{display:flex;flex-direction:column;gap:2px;}
-.stb-key{font-size:10px;color:#999;}
+.stb-key{font-size:10px;color:var(--gray3);}
 .stb-field input{font-size:13px;height:32px;}
 .stb-field input.changed{border-color:#f59e0b;}
 .modified-dot{width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;margin-left:3px;vertical-align:middle;}
 .tm-sel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px;margin-bottom:8px;}
-.tm-sel-item{border:1px solid #e8e8e8;border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;background:#fff;}
-.tm-sel-item:hover{background:#f9f9f7;}
-.tm-sel-item.selected{border-color:#3b82f6;background:#eff6ff;}
-.tm-sel-item.selected .tm-num{background:#3b82f6;color:#fff;}
-.session-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;cursor:pointer;}
-.session-card:hover{background:#fafaf8;}
-.session-card.active-s{border-color:#3b82f6;border-width:2px;}
+.tm-sel-item{border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;background:var(--white);}
+.tm-sel-item:hover{background:var(--gray);}
+.tm-sel-item.selected{border-color:var(--red);background:#fff5f5;}
+.tm-sel-item.selected .tm-num{background:var(--red);}
+.session-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:10px;cursor:pointer;}
+.session-card:hover{background:#fafafa;}
+.session-card.active-s{border-color:var(--red);border-width:2px;}
 
-/* ── 釣果記録: カウント ── */
+/* カウント */
 .lure-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.lure-name{font-size:14px;font-weight:600;}
+.lure-name{font-size:14px;font-weight:700;}
 .colors-grid{display:flex;flex-wrap:wrap;gap:7px;}
-.color-item{display:flex;align-items:center;gap:7px;border:1px solid #e8e8e8;border-radius:8px;padding:6px 10px;min-width:128px;background:#fafaf8;}
+.color-item{display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:8px;padding:6px 10px;min-width:128px;background:#fafafa;}
 .color-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.1);flex-shrink:0;}
 .color-label{font-size:12px;color:#555;flex:1;}
 .count-ctrl{display:flex;align-items:center;gap:6px;}
-.cnt-btn{width:26px;height:26px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:#333;line-height:1;font-family:inherit;}
-.cnt-btn:hover{background:#f0f0f0;}
-.cnt-btn:active{transform:scale(.92);}
-.cnt-num{font-size:16px;font-weight:600;min-width:20px;text-align:center;}
-.group-label{font-size:11px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 5px;}
+.cnt-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text);line-height:1;font-family:inherit;font-weight:700;}
+.cnt-btn:hover{background:var(--gray);}
+.cnt-btn:active{transform:scale(.9);}
+.cnt-num{font-size:16px;font-weight:700;min-width:22px;text-align:center;}
+.group-label{font-size:10px;font-weight:700;color:var(--gray3);text-transform:uppercase;letter-spacing:.1em;margin:1rem 0 6px;display:flex;align-items:center;gap:6px;}
+.group-label::after{content:'';flex:1;height:1px;background:var(--border);}
 
-/* ── 釣果記録: 集計・履歴 ── */
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.2rem;}
-.stat-card{background:#fff;border-radius:10px;padding:.9rem;border:1px solid #e8e8e8;}
-.stat-label{font-size:12px;color:#888;margin-bottom:3px;}
-.stat-num{font-size:24px;font-weight:700;}
-.rank-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #f0f0f0;}
-.rank-num{font-size:12px;color:#999;width:16px;}
-.rank-bar-wrap{flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;}
-.rank-bar{height:100%;background:#3b82f6;border-radius:4px;}
-.rank-name{font-size:12px;width:155px;}
-.rank-cnt{font-size:13px;font-weight:600;width:28px;text-align:right;}
+/* 集計・履歴 */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.2rem;}
+.stat-card{background:var(--white);border-radius:var(--radius);padding:1rem;border:1px solid var(--border);text-align:center;}
+.stat-label{font-size:11px;color:var(--gray3);margin-bottom:4px;}
+.stat-num{font-size:28px;font-weight:800;}
+.rank-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--gray2);}
+.rank-num{font-size:12px;color:var(--gray3);width:16px;font-weight:700;}
+.rank-bar-wrap{flex:1;height:6px;background:var(--gray2);border-radius:3px;overflow:hidden;}
+.rank-bar{height:100%;background:var(--red);border-radius:3px;}
+.rank-name{font-size:12px;width:155px;font-weight:600;}
+.rank-cnt{font-size:13px;font-weight:700;width:28px;text-align:right;}
 .hist-tackle{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 12px;margin:5px 0;}
 .hist-trow{display:flex;flex-direction:column;gap:1px;}
-.hist-key{font-size:10px;color:#999;}
+.hist-key{font-size:10px;color:var(--gray3);}
 .hist-val{font-size:12px;color:#333;}
 .hist-val.changed{color:#d97706;}
 
-/* ── 釣果記録: ルアー管理 ── */
-.mc-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;}
+/* ルアー管理 */
+.mc-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--gray2);flex-wrap:wrap;}
 .mc-row:last-of-type{border-bottom:none;}
-.mc-row input[type="color"]{width:34px;height:28px;padding:2px 3px;cursor:pointer;border-radius:6px;border:1px solid #ddd;flex-shrink:0;}
+.mc-row input[type="color"]{width:34px;height:28px;padding:2px 3px;cursor:pointer;border-radius:6px;border:1px solid var(--border);flex-shrink:0;}
 .mc-row input[type="text"]{flex:1;min-width:80px;font-size:13px;height:30px;}
-.ac-row{display:flex;gap:7px;align-items:center;margin-top:9px;padding-top:8px;border-top:1px solid #f0f0f0;flex-wrap:wrap;}
-.ac-row input[type="color"]{width:38px;height:34px;padding:2px 3px;cursor:pointer;border-radius:6px;border:1px solid #ddd;flex-shrink:0;}
+.ac-row{display:flex;gap:7px;align-items:center;margin-top:9px;padding-top:8px;border-top:1px solid var(--gray2);flex-wrap:wrap;}
+.ac-row input[type="color"]{width:38px;height:34px;padding:2px 3px;cursor:pointer;border-radius:6px;border:1px solid var(--border);flex-shrink:0;}
 .ac-row input[type="text"]{flex:1;min-width:100px;font-size:13px;}
 
-/* ── トーナメント ── */
-.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
-.mode-card{border:2px solid #e8e8e8;border-radius:12px;padding:1.2rem;cursor:pointer;text-align:center;background:#fff;}
-.mode-card:hover{border-color:#999;background:#fafaf8;}
-.mode-card.selected{border-color:#1a1a1a;background:#1a1a1a;color:#fff;}
-.mode-icon{font-size:32px;margin-bottom:8px;}
-.mode-title{font-size:15px;font-weight:700;margin-bottom:4px;}
-.mode-desc{font-size:12px;opacity:.7;line-height:1.4;}
+/* シェア画面 */
+.share-screen{background:var(--black);padding:1.5rem 1.2rem 2rem;}
+.share-logo-line{display:flex;align-items:center;gap:8px;margin-bottom:1.5rem;}
+.share-logo-text{font-size:20px;font-weight:900;color:var(--red);font-style:italic;}
+.share-logo-date{font-size:12px;color:rgba(255,255,255,.35);margin-left:auto;}
+.share-place{font-size:28px;font-weight:900;color:var(--white);line-height:1.1;margin-bottom:.3rem;}
+.share-meta{font-size:12px;color:rgba(255,255,255,.4);margin-bottom:1.5rem;}
+.share-total-block{display:flex;align-items:baseline;gap:6px;margin-bottom:1.5rem;border-left:4px solid var(--red);padding-left:14px;}
+.share-total-num{font-size:72px;font-weight:900;color:var(--white);line-height:1;font-variant-numeric:tabular-nums;}
+.share-total-unit{font-size:18px;font-weight:700;color:rgba(255,255,255,.4);}
+.share-lure-list{display:flex;flex-direction:column;gap:7px;margin-bottom:1.5rem;}
+.share-lure-row{display:flex;align-items:center;gap:10px;}
+.share-lure-name{font-size:12px;color:rgba(255,255,255,.65);width:130px;font-weight:600;flex-shrink:0;}
+.share-lure-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+.share-lure-bar{height:100%;background:var(--red);border-radius:3px;}
+.share-lure-cnt{font-size:14px;font-weight:800;color:var(--white);width:28px;text-align:right;}
+.share-tackle-section{border-top:1px solid rgba(255,255,255,.1);padding-top:1rem;}
+.share-tackle-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+.share-tackle-item{font-size:12px;color:rgba(255,255,255,.55);margin-bottom:4px;}
+.share-memo{font-size:13px;color:rgba(255,255,255,.4);font-style:italic;border-top:1px solid rgba(255,255,255,.1);padding-top:1rem;margin-top:1rem;}
+
+/* トーナメント */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.mode-card{border:2px solid var(--border);border-radius:var(--radius-lg);padding:1.2rem;cursor:pointer;text-align:center;background:var(--white);}
+.mode-card:hover{border-color:#999;}
+.mode-card.selected{border-color:var(--black);background:var(--black);color:var(--white);}
+.mode-icon{font-size:30px;margin-bottom:8px;}
+.mode-title{font-size:14px;font-weight:800;margin-bottom:3px;}
+.mode-desc{font-size:11px;color:var(--gray3);line-height:1.4;}
+.mode-card.selected .mode-desc{color:rgba(255,255,255,.5);}
 .timer-display{text-align:center;padding:1.2rem 0 .8rem;}
-.timer-rota{font-size:13px;color:#888;margin-bottom:4px;font-weight:600;letter-spacing:.05em;}
-.timer-time{font-size:68px;font-weight:800;letter-spacing:.02em;line-height:1;font-variant-numeric:tabular-nums;}
+.timer-rota{font-size:12px;color:var(--gray3);margin-bottom:4px;font-weight:700;letter-spacing:.08em;}
+.timer-time{font-size:68px;font-weight:900;letter-spacing:.02em;line-height:1;font-variant-numeric:tabular-nums;}
 .timer-time.warning{color:#d97706;}
-.timer-time.danger{color:#dc2626;}
+.timer-time.danger{color:var(--red);}
 .timer-controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.progress-bar{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin:6px 0;}
-.progress-fill{height:100%;background:#16a34a;border-radius:3px;transition:width .5s linear;}
+.progress-bar{height:4px;background:var(--gray2);border-radius:2px;overflow:hidden;margin:6px 0;}
+.progress-fill{height:100%;background:var(--black);border-radius:2px;transition:width .5s linear;}
 .progress-fill.warning{background:#d97706;}
-.progress-fill.danger{background:#dc2626;}
-.players-grid{display:grid;gap:10px;margin-top:10px;}
-.player-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:.9rem 1.2rem;display:flex;align-items:center;gap:12px;}
-.player-rank{width:28px;height:28px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.progress-fill.danger{background:var(--red);}
+.players-grid{display:grid;gap:8px;margin-top:10px;}
+.player-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.9rem 1.2rem;display:flex;align-items:center;gap:12px;}
+.player-rank{width:28px;height:28px;border-radius:50%;background:var(--gray);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;}
 .player-rank.gold{background:#fbbf24;color:#7c2d12;}
 .player-rank.silver{background:#d1d5db;color:#374151;}
-.player-rank.bronze{background:#d97706;color:#fff;}
-.player-name-t{font-size:14px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.player-count-t{font-size:36px;font-weight:800;min-width:56px;text-align:center;font-variant-numeric:tabular-nums;}
+.player-rank.bronze{background:#d97706;color:var(--white);}
+.player-name-t{font-size:14px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.player-count-t{font-size:36px;font-weight:900;min-width:56px;text-align:center;font-variant-numeric:tabular-nums;}
 .cnt-btns{display:flex;flex-direction:column;gap:5px;}
-.cnt-btn-lg{width:36px;height:36px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:#1a1a1a;line-height:1;font-family:inherit;font-weight:600;}
-.cnt-btn-lg:hover{background:#f0f0f0;}
+.cnt-btn-lg{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--white);cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;color:var(--text);line-height:1;font-family:inherit;font-weight:700;}
+.cnt-btn-lg:hover{background:var(--gray);}
 .cnt-btn-lg:active{transform:scale(.9);}
-.result-title{text-align:center;font-size:22px;font-weight:800;margin:1rem 0 .5rem;}
-.result-sub{text-align:center;font-size:14px;color:#888;margin-bottom:1.5rem;}
+.result-title{text-align:center;font-size:22px;font-weight:900;margin:1rem 0 .5rem;}
+.result-sub{text-align:center;font-size:14px;color:var(--gray3);margin-bottom:1.5rem;}
 .result-podium{display:flex;flex-direction:column;gap:8px;}
-.result-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:.8rem 1rem;}
+.result-row{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:.8rem 1rem;}
 .result-rank{font-size:22px;width:36px;text-align:center;flex-shrink:0;}
-.result-name{font-size:15px;font-weight:600;flex:1;}
-.result-fish{font-size:22px;font-weight:800;}
-.hist-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;}
+.result-name{font-size:15px;font-weight:700;flex:1;}
+.result-fish{font-size:22px;font-weight:900;}
+.hist-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:10px;}
 .hist-header-t{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
 .hist-title-t{font-size:14px;font-weight:700;}
-.hist-meta-t{font-size:12px;color:#888;}
+.hist-meta-t{font-size:12px;color:var(--gray3);}
 .hist-players-t{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
-.hist-player-t{font-size:12px;border:1px solid #e8e8e8;border-radius:6px;padding:3px 8px;}
-.rota-badge{display:inline-block;font-size:12px;background:#eff6ff;color:#3b82f6;border:1px solid #bfdbfe;padding:2px 8px;border-radius:999px;font-weight:600;}
-@keyframes flashbg{0%,100%{background:#f5f5f0}50%{background:#fca5a5}}
+.hist-player-t{font-size:12px;border:1px solid var(--border);border-radius:6px;padding:3px 8px;}
+.rota-badge{display:inline-block;font-size:12px;background:var(--gray);color:var(--text);border:1px solid var(--border);padding:2px 8px;border-radius:999px;font-weight:700;}
+@keyframes flashbg{0%,100%{background:var(--gray)}50%{background:#fca5a5}}
 body.alarm{animation:flashbg .4s ease-in-out infinite;}
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- ══ ホーム ══ -->
+<!-- ホーム -->
 <div class="page active" id="page-home">
-  <div class="home-header">
-    <div class="home-logo">🎣</div>
-    <div class="home-title">トラカン</div>
-    <div class="home-sub">エリアトラウト 釣果カウンター</div>
-  </div>
-  <div class="home-btns">
-    <div class="home-btn" onclick="showPage('fishing')">
-      <div class="home-btn-icon">📒</div>
-      <div class="home-btn-label">釣果記録</div>
-      <div class="home-btn-desc">タックル管理<br>ルアーカウント<br>釣行履歴・集計</div>
-    </div>
-    <div class="home-btn" onclick="showPage('tournament')">
-      <div class="home-btn-icon">🏆</div>
-      <div class="home-btn-label">トーナメント</div>
-      <div class="home-btn-desc">選手カウンター<br>タイマー＆ローテ<br>大会記録保存</div>
+  <div class="home-hero">
+    <div class="logo-wrap">
+      <svg width="72" height="36" viewBox="0 0 72 36" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 6px">
+        <path d="M5 18 C5 18 0 9 9 9 C18 9 14 4 23 4 C36 4 46 11 55 18 C46 25 36 32 23 32 C14 32 18 27 9 27 C0 27 5 18 5 18Z" fill="#e8170e"/>
+        <circle cx="25" cy="14" r="2.5" fill="white"/>
+        <path d="M55 18 L68 9 L63 18 L68 27Z" fill="#e8170e"/>
+        <path d="M41 9 Q48 13 48 18 Q48 23 41 27" stroke="rgba(0,0,0,.25)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-title">トラカン</span>
+      <div class="logo-sub">TROUT COUNTER</div>
     </div>
   </div>
-  <p style="text-align:center;font-size:11px;color:#ccc">トラウト × カウンター</p>
+  <div class="home-cards">
+    <div class="home-card" onclick="showPage('fishing')">
+      <span class="home-card-icon">📒</span>
+      <div class="home-card-label">釣果記録</div>
+      <div class="home-card-desc">タックル管理<br>ルアーカウント<br>釣行履歴・集計</div>
+    </div>
+    <div class="home-card red" onclick="showPage('tournament')">
+      <span class="home-card-icon">🏆</span>
+      <div class="home-card-label">トーナメント</div>
+      <div class="home-card-desc">選手カウンター<br>タイマー＆ローテ<br>大会記録保存</div>
+    </div>
+  </div>
 </div>
 
-<!-- ══ 釣果記録ページ ══ -->
+<!-- 釣果記録 -->
 <div class="page" id="page-fishing">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-    <h1 style="margin:0">📒 釣果記録</h1>
-    <button class="back-btn" onclick="showPage('home')">← ホーム</button>
+  <div class="page-header">
+    <button class="page-header-back" onclick="showPage('home')">← ホーム</button>
+    <div class="page-header-title">📒 釣果記録</div>
   </div>
-  <div class="tabs">
-    <button class="tab active" onclick="fSwitchTab('tackle')">タックル</button>
-    <button class="tab" onclick="fSwitchTab('session')">釣行</button>
-    <button class="tab" onclick="fSwitchTab('count')">カウント</button>
-    <button class="tab" onclick="fSwitchTab('history')">履歴</button>
-    <button class="tab" onclick="fSwitchTab('stats')">集計</button>
-    <button class="tab" onclick="fSwitchTab('manage')">ルアー管理</button>
-  </div>
-
-  <!-- タックル -->
-  <div class="section active" id="ftab-tackle">
-    <p style="font-size:13px;color:#888;margin-bottom:12px">最大6セットのベースタックルを登録。釣行時に呼び出してその場で微調整できます。</p>
-    <div class="tm-grid" id="f-tm-grid"></div>
-  </div>
-
-  <!-- 釣行 -->
-  <div class="section" id="ftab-session">
-    <div class="card">
-      <div class="card-title">新しい釣行を開始</div>
-      <div class="slabel">基本情報</div>
-      <div class="fgrid">
-        <input type="date" id="f-s-date"/>
-        <input type="text" id="f-s-place" placeholder="釣り場・エリア名"/>
-      </div>
-      <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
-        <select id="f-s-weather"><option value="">天気</option><option>☀️ 晴れ</option><option>⛅ 曇り</option><option>🌧 雨</option><option>❄️ 雪</option></select>
-        <input type="text" id="f-s-airtemp" placeholder="気温（℃）"/>
-        <input type="text" id="f-s-watertemp" placeholder="水温（℃）"/>
-      </div>
-      <div class="divider"></div>
-      <div class="slabel">ベースタックルを選択（複数可）</div>
-      <div class="tm-sel-grid" id="f-tm-select-grid"></div>
-      <div id="f-session-tackle-edit"></div>
-      <div class="divider"></div>
-      <textarea id="f-s-memo" placeholder="メモ（任意）" style="margin-bottom:8px"></textarea>
-      <button class="btn btn-primary" onclick="fStartSession()">▶ 釣行を開始</button>
+  <div class="page-content">
+    <div class="tabs">
+      <button class="tab active" onclick="fSwitchTab('tackle')">タックル</button>
+      <button class="tab" onclick="fSwitchTab('session')">釣行</button>
+      <button class="tab" onclick="fSwitchTab('count')">カウント</button>
+      <button class="tab" onclick="fSwitchTab('history')">履歴</button>
+      <button class="tab" onclick="fSwitchTab('stats')">集計</button>
+      <button class="tab" onclick="fSwitchTab('manage')">ルアー管理</button>
     </div>
-    <div class="slabel">過去の釣行</div>
-    <div id="f-session-list"></div>
-    <p class="empty" id="f-session-empty" style="display:none">まだ釣行記録がありません。</p>
-  </div>
-
-  <!-- カウント -->
-  <div class="section" id="ftab-count">
-    <div id="f-active-session-info" style="margin-bottom:10px"></div>
-    <div id="f-lure-count-list"></div>
-    <p class="empty" id="f-count-empty" style="display:none">「釣行」タブから釣行を開始してください。</p>
-  </div>
-
-  <!-- 履歴 -->
-  <div class="section" id="ftab-history">
-    <div id="f-history-list"></div>
-    <p class="empty" id="f-history-empty" style="display:none">まだ記録がありません。</p>
-  </div>
-
-  <!-- 集計 -->
-  <div class="section" id="ftab-stats">
-    <div class="stat-grid">
-      <div class="stat-card"><div class="stat-label">総釣果数</div><div class="stat-num" id="f-stat-total">0</div></div>
-      <div class="stat-card"><div class="stat-label">釣行回数</div><div class="stat-num" id="f-stat-sessions">0</div></div>
-      <div class="stat-card"><div class="stat-label">使用ルアー種</div><div class="stat-num" id="f-stat-lure-types">0</div></div>
+    <div class="section active" id="ftab-tackle">
+      <p style="font-size:13px;color:var(--gray3);margin-bottom:12px">最大6セットのベースタックルを登録。釣行時に呼び出してその場で微調整できます。</p>
+      <div class="tm-grid" id="f-tm-grid"></div>
     </div>
-    <div class="slabel">ルアー別釣果ランキング</div>
-    <div id="f-rank-list"></div>
-    <p class="empty" id="f-rank-empty" style="display:none">まだデータがありません。</p>
-  </div>
-
-  <!-- ルアー管理 -->
-  <div class="section" id="ftab-manage">
-    <div class="card">
-      <div class="card-title">新しいルアーを追加</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input type="text" id="f-new-lure-name" placeholder="ルアー名（例: ペレット、フェザージグ）" style="flex:1;min-width:150px"/>
-        <button class="btn" onclick="fAddLure()">+ 追加</button>
-      </div>
-    </div>
-    <div id="f-manage-lure-list"></div>
-  </div>
-</div>
-
-<!-- ══ トーナメントページ ══ -->
-<div class="page" id="page-tournament">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
-    <h1 style="margin:0">🏆 トーナメント</h1>
-    <button class="back-btn" onclick="showPage('home')">← ホーム</button>
-  </div>
-
-  <!-- セットアップ -->
-  <div class="section active" id="tscreen-setup">
-    <div class="slabel">モードを選択</div>
-    <div class="mode-grid">
-      <div class="mode-card selected" id="tmc-casual" onclick="tSelectMode('casual')">
-        <div class="mode-icon">🎣</div>
-        <div class="mode-title">カジュアル</div>
-        <div class="mode-desc">記録なし。<br>気軽に使える練習向け</div>
-      </div>
-      <div class="mode-card" id="tmc-official" onclick="tSelectMode('official')">
-        <div class="mode-icon">🏆</div>
-        <div class="mode-title">本格モード</div>
-        <div class="mode-desc">大会名・日時・場所を登録。<br>結果を保存</div>
-      </div>
-    </div>
-    <div id="t-official-fields" style="display:none">
+    <div class="section" id="ftab-session">
       <div class="card">
-        <div class="slabel">大会情報</div>
+        <div class="card-title">新しい釣行を開始</div>
+        <div class="slabel">基本情報</div>
         <div class="fgrid">
-          <input type="text" id="t-name" placeholder="大会名"/>
-          <input type="text" id="t-place" placeholder="会場・釣り場"/>
+          <input type="date" id="f-s-date"/>
+          <input type="text" id="f-s-place" placeholder="釣り場・エリア名"/>
         </div>
-        <div class="fgrid">
-          <input type="date" id="t-date"/>
-          <input type="time" id="t-time"/>
+        <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
+          <select id="f-s-weather"><option value="">天気</option><option>☀️ 晴れ</option><option>⛅ 曇り</option><option>🌧 雨</option><option>❄️ 雪</option></select>
+          <input type="text" id="f-s-airtemp" placeholder="気温（℃）"/>
+          <input type="text" id="f-s-watertemp" placeholder="水温（℃）"/>
+        </div>
+        <div class="divider"></div>
+        <div class="slabel">ベースタックルを選択（複数可）</div>
+        <div class="tm-sel-grid" id="f-tm-select-grid"></div>
+        <div id="f-session-tackle-edit"></div>
+        <div class="divider"></div>
+        <textarea id="f-s-memo" placeholder="メモ（任意）" style="margin-bottom:8px"></textarea>
+        <button class="btn btn-primary" style="width:100%" onclick="fStartSession()">▶ 釣行を開始</button>
+      </div>
+      <div class="slabel">過去の釣行</div>
+      <div id="f-session-list"></div>
+      <p class="empty" id="f-session-empty" style="display:none">まだ釣行記録がありません。</p>
+    </div>
+    <div class="section" id="ftab-count">
+      <div id="f-active-session-info" style="margin-bottom:10px"></div>
+      <div id="f-lure-count-list"></div>
+      <p class="empty" id="f-count-empty" style="display:none">「釣行」タブから釣行を開始してください。</p>
+    </div>
+    <div class="section" id="ftab-history">
+      <div id="f-history-list"></div>
+      <p class="empty" id="f-history-empty" style="display:none">まだ記録がありません。</p>
+    </div>
+    <div class="section" id="ftab-stats">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">総釣果数</div><div class="stat-num" id="f-stat-total">0</div></div>
+        <div class="stat-card"><div class="stat-label">釣行回数</div><div class="stat-num" id="f-stat-sessions">0</div></div>
+        <div class="stat-card"><div class="stat-label">使用ルアー</div><div class="stat-num" id="f-stat-lure-types">0</div></div>
+      </div>
+      <div class="slabel">ルアー別釣果ランキング</div>
+      <div id="f-rank-list"></div>
+      <p class="empty" id="f-rank-empty" style="display:none">まだデータがありません。</p>
+    </div>
+    <div class="section" id="ftab-manage">
+      <div class="card">
+        <div class="card-title">新しいルアーを追加</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="f-new-lure-name" placeholder="ルアー名（例: ペレット）" style="flex:1;min-width:150px"/>
+          <button class="btn" onclick="fAddLure()">+ 追加</button>
         </div>
       </div>
+      <div id="f-manage-lure-list"></div>
     </div>
-    <div class="card">
-      <div class="slabel">タイマー設定</div>
-      <div class="fgrid">
-        <div>
-          <div style="font-size:11px;color:#999;margin-bottom:3px">試合時間（分）</div>
-          <input type="number" id="t-duration" value="30" min="1" max="999"/>
-        </div>
-        <div>
-          <div style="font-size:11px;color:#999;margin-bottom:3px">ローテーション回数</div>
-          <input type="number" id="t-rota" value="3" min="1" max="20"/>
-        </div>
-      </div>
-      <div id="t-rota-preview" style="font-size:12px;color:#888;margin-top:4px"></div>
-    </div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-        <div class="slabel" style="margin:0">選手（2〜5人）</div>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-xs" onclick="tRemovePlayer()">− 削除</button>
-          <button class="btn btn-xs" onclick="tAddPlayer()">+ 追加</button>
-        </div>
-      </div>
-      <div id="t-player-inputs"></div>
-    </div>
-    <button class="btn btn-primary" style="width:100%;padding:12px" onclick="tStart()">▶ 開始する</button>
-    <div style="margin-top:12px">
-      <button class="btn btn-sm" onclick="tShowHistory()">📋 大会履歴</button>
-    </div>
-  </div>
-
-  <!-- 試合中 -->
-  <div class="section" id="tscreen-game">
-    <div class="card" style="padding:.8rem 1.2rem">
-      <div id="t-game-title" style="font-size:13px;color:#888;margin-bottom:6px"></div>
-      <div class="timer-display">
-        <div class="timer-rota" id="t-rota-label"></div>
-        <div class="timer-time" id="t-timer-display">00:00</div>
-        <div class="progress-bar"><div class="progress-fill" id="t-progress-fill" style="width:100%"></div></div>
-      </div>
-      <div class="timer-controls">
-        <button class="btn btn-green" id="t-btn-startstop" onclick="tToggleTimer()">▶ スタート</button>
-        <button class="btn btn-yellow btn-sm" onclick="tNextRota()">⏭ 次のローテ</button>
-        <button class="btn btn-sm" onclick="tResetRota()">↩ リセット</button>
-        <button class="btn btn-red btn-sm" onclick="tEndGame()">■ 終了</button>
-      </div>
-    </div>
-    <div class="players-grid" id="t-players-grid"></div>
-  </div>
-
-  <!-- 結果 -->
-  <div class="section" id="tscreen-result">
-    <div class="result-title">🎉 試合終了！</div>
-    <div class="result-sub" id="t-result-sub"></div>
-    <div class="result-podium" id="t-result-podium"></div>
-    <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
-      <button class="btn btn-primary" style="flex:1" onclick="tGoSetup()">新しい試合</button>
-      <button class="btn" style="flex:1" onclick="tShowHistory()">履歴を見る</button>
-    </div>
-  </div>
-
-  <!-- 履歴 -->
-  <div class="section" id="tscreen-history">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:15px;font-weight:700">📋 大会履歴</div>
-      <button class="back-btn" onclick="tGoSetup()">← 戻る</button>
-    </div>
-    <div id="t-history-list"></div>
-    <p class="empty" id="t-history-empty">まだ記録がありません。</p>
   </div>
 </div>
 
-</div><!-- /.app -->
+<!-- シェア画面 -->
+<div class="page" id="page-share">
+  <div class="share-screen" id="share-content">
+    <div class="share-logo-line">
+      <span class="share-logo-text">トラカン</span>
+      <span class="share-logo-date" id="share-date"></span>
+    </div>
+    <div class="share-place" id="share-place"></div>
+    <div class="share-meta" id="share-meta"></div>
+    <div class="share-total-block">
+      <span class="share-total-num" id="share-total-num">0</span>
+      <span class="share-total-unit">匹</span>
+    </div>
+    <div class="share-lure-list" id="share-lure-list"></div>
+    <div class="share-tackle-section" id="share-tackle-section"></div>
+    <div class="share-memo" id="share-memo" style="display:none"></div>
+  </div>
+  <div style="padding:1rem;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-primary" style="flex:1" onclick="showPage('fishing');fSwitchTab('history')">← 戻る</button>
+    <button class="btn" style="flex:1;font-size:12px" onclick="alert('この画面をスクショしてSNSにシェアしよう📸\n※ スクショ時はこのボタンは画面外に出してね')">📸 スクショ用</button>
+  </div>
+</div>
 
+<!-- トーナメント -->
+<div class="page" id="page-tournament">
+  <div class="page-header">
+    <button class="page-header-back" onclick="showPage('home')">← ホーム</button>
+    <div class="page-header-title">🏆 トーナメント</div>
+  </div>
+  <div class="page-content">
+    <div class="section active" id="tscreen-setup">
+      <div class="slabel">モードを選択</div>
+      <div class="mode-grid">
+        <div class="mode-card selected" id="tmc-casual" onclick="tSelectMode('casual')">
+          <div class="mode-icon">🎣</div><div class="mode-title">カジュアル</div>
+          <div class="mode-desc">記録なし。気軽に使える練習向け</div>
+        </div>
+        <div class="mode-card" id="tmc-official" onclick="tSelectMode('official')">
+          <div class="mode-icon">🏆</div><div class="mode-title">本格モード</div>
+          <div class="mode-desc">大会名・日時・場所を登録。結果を保存</div>
+        </div>
+      </div>
+      <div id="t-official-fields" style="display:none">
+        <div class="card">
+          <div class="slabel">大会情報</div>
+          <div class="fgrid">
+            <input type="text" id="t-name" placeholder="大会名"/>
+            <input type="text" id="t-place" placeholder="会場・釣り場"/>
+          </div>
+          <div class="fgrid">
+            <input type="date" id="t-date"/>
+            <input type="time" id="t-time"/>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="slabel">タイマー設定</div>
+        <div class="fgrid">
+          <div><div style="font-size:11px;color:var(--gray3);margin-bottom:3px">試合時間（分）</div><input type="number" id="t-duration" value="30" min="1" max="999"/></div>
+          <div><div style="font-size:11px;color:var(--gray3);margin-bottom:3px">ローテーション回数</div><input type="number" id="t-rota" value="3" min="1" max="20"/></div>
+        </div>
+        <div id="t-rota-preview" style="font-size:12px;color:var(--gray3);margin-top:4px"></div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div class="slabel" style="margin:0">選手（2〜5人）</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-xs" onclick="tRemovePlayer()">− 削除</button>
+            <button class="btn btn-xs" onclick="tAddPlayer()">+ 追加</button>
+          </div>
+        </div>
+        <div id="t-player-inputs"></div>
+      </div>
+      <button class="btn btn-red" style="width:100%;padding:13px;font-size:15px" onclick="tStart()">▶ 開始する</button>
+      <div style="margin-top:10px"><button class="btn btn-sm" onclick="tShowHistory()">📋 大会履歴</button></div>
+    </div>
+    <div class="section" id="tscreen-game">
+      <div class="card" style="padding:.8rem 1.1rem">
+        <div id="t-game-title" style="font-size:12px;color:var(--gray3);margin-bottom:6px"></div>
+        <div class="timer-display">
+          <div class="timer-rota" id="t-rota-label"></div>
+          <div class="timer-time" id="t-timer-display">00:00</div>
+          <div class="progress-bar"><div class="progress-fill" id="t-progress-fill" style="width:100%"></div></div>
+        </div>
+        <div class="timer-controls">
+          <button class="btn btn-green" id="t-btn-startstop" onclick="tToggleTimer()">▶ スタート</button>
+          <button class="btn btn-yellow btn-sm" onclick="tNextRota()">⏭ 次のローテ</button>
+          <button class="btn btn-sm" onclick="tResetRota()">↩ リセット</button>
+          <button class="btn btn-outline-red btn-sm" onclick="tEndGame()">■ 終了</button>
+        </div>
+      </div>
+      <div class="players-grid" id="t-players-grid"></div>
+    </div>
+    <div class="section" id="tscreen-result">
+      <div class="result-title">🎉 試合終了！</div>
+      <div class="result-sub" id="t-result-sub"></div>
+      <div class="result-podium" id="t-result-podium"></div>
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn btn-primary" style="flex:1" onclick="tGoSetup()">新しい試合</button>
+        <button class="btn" style="flex:1" onclick="tShowHistory()">履歴を見る</button>
+      </div>
+    </div>
+    <div class="section" id="tscreen-history">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:15px;font-weight:800">📋 大会履歴</div>
+        <button class="btn btn-sm" onclick="tGoSetup()">← 戻る</button>
+      </div>
+      <div id="t-history-list"></div>
+      <p class="empty" id="t-history-empty">まだ記録がありません。</p>
+    </div>
+  </div>
+</div>
+
+</div>
 <script>
-// ══════════════════════════════════════════
-//  ページ切り替え
-// ══════════════════════════════════════════
-function showPage(name){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  window.scrollTo(0,0);
-}
+function showPage(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');window.scrollTo(0,0);}
 
-// ══════════════════════════════════════════
-//  釣果記録 (prefix: f)
-// ══════════════════════════════════════════
+// ══ 釣果記録 ══
 const F_DEFAULT_LURES=[
   {id:1,name:'スプーン 〜1g',colors:[{id:1,name:'ゴールド',hex:'#FFD700'},{id:2,name:'シルバー',hex:'#C0C0C0'},{id:3,name:'ピンク',hex:'#FF69B4'}]},
   {id:2,name:'スプーン 1.1〜1.5g',colors:[{id:1,name:'ゴールド',hex:'#FFD700'},{id:2,name:'シルバー',hex:'#C0C0C0'},{id:3,name:'オレンジ',hex:'#FF8C00'}]},
@@ -436,13 +464,9 @@ const TACKLE_FIELDS=[
   {key:'hook',label:'針',placeholder:'例: #8 バーブレス'},
 ];
 let fSte={};
-let fState={
-  lures:JSON.parse(JSON.stringify(F_DEFAULT_LURES)),
-  tackles:Array.from({length:6},(_,i)=>({slot:i+1,name:'',rod:'',reel:'',line:'',leader:'',hook:'',editing:false})),
-  sessions:[],activeSessionId:null,nextLureId:9,nextSessionId:1,selectedTackleSlots:[],
-};
+let fState={lures:JSON.parse(JSON.stringify(F_DEFAULT_LURES)),tackles:Array.from({length:6},(_,i)=>({slot:i+1,name:'',rod:'',reel:'',line:'',leader:'',hook:'',editing:false})),sessions:[],activeSessionId:null,nextLureId:9,nextSessionId:1,selectedTackleSlots:[]};
 function fSave(){try{localStorage.setItem('toracan_f',JSON.stringify(fState));}catch(e){}}
-function fLoad(){try{const d=localStorage.getItem('toracan_f');if(d){const p=JSON.parse(d);fState=Object.assign(fState,p);}}catch(e){}}
+function fLoad(){try{const d=localStorage.getItem('toracan_f');if(d)fState=Object.assign(fState,JSON.parse(d));}catch(e){}}
 
 function fSwitchTab(tab){
   const names=['tackle','session','count','history','stats','manage'];
@@ -450,262 +474,109 @@ function fSwitchTab(tab){
   document.querySelectorAll('#page-fishing .section').forEach(s=>s.classList.remove('active'));
   document.getElementById('ftab-'+tab).classList.add('active');
   if(tab==='session'){fRenderSessionList();fRenderTackleSelectGrid();}
-  if(tab==='count') fRenderCountTab();
-  if(tab==='history') fRenderHistory();
-  if(tab==='stats') fRenderStats();
+  if(tab==='count')fRenderCountTab();
+  if(tab==='history')fRenderHistory();
+  if(tab==='stats')fRenderStats();
 }
 
-// タックル
 function fRenderTackleGrid(){document.getElementById('f-tm-grid').innerHTML=fState.tackles.map(fTmCard).join('');}
 function fTmCard(t){
   const isEmpty=!t.name&&!t.rod&&!t.reel&&!t.line&&!t.leader&&!t.hook;
-  if(t.editing){return `<div class="tm-card">
-    <div class="tm-header"><div class="tm-num">${t.slot}</div><span style="font-size:13px;font-weight:600;color:#888">編集中</span></div>
-    <div class="edit-form">
-      ${TACKLE_FIELDS.map(f=>`<div style="margin-bottom:6px"><div style="font-size:11px;color:#999;margin-bottom:2px">${f.label}</div>
-        <input type="text" id="fte-${t.slot}-${f.key}" value="${esc(t[f.key]||'')}" placeholder="${f.placeholder}"/></div>`).join('')}
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-        <button class="btn btn-primary btn-sm" onclick="fSaveTackle(${t.slot})">保存</button>
-        <button class="btn btn-sm" onclick="fCancelEditTackle(${t.slot})">キャンセル</button>
-        ${!isEmpty?`<button class="btn btn-sm" onclick="fCopyTackle(${t.slot})">コピー</button>`:''}
-      </div>
-    </div></div>`;}
-  if(isEmpty){return `<div class="tm-card empty-slot" style="display:flex;align-items:center;justify-content:center;min-height:76px;gap:10px;cursor:pointer" onclick="fEditTackle(${t.slot})">
-    <div class="tm-num">${t.slot}</div><span style="font-size:13px;color:#bbb">タップして登録</span></div>`;}
-  return `<div class="tm-card">
-    <div class="tm-header">
-      <div class="tm-num">${t.slot}</div>
-      <span class="tm-name">${esc(t.name||'セット'+t.slot)}</span>
-      <div class="tm-actions">
-        <button class="btn btn-xs" onclick="fCopyTackle(${t.slot})">コピー</button>
-        <button class="btn btn-xs" onclick="fEditTackle(${t.slot})">編集</button>
-        <button class="btn btn-xs btn-danger" onclick="fClearTackle(${t.slot})">削除</button>
-      </div>
-    </div>
-    <div class="tm-fields">
-      ${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>`<div class="tm-field"><span class="tm-key">${f.label}</span><span class="tm-val">${esc(t[f.key])}</span></div>`).join('')}
-    </div></div>`;}
+  if(t.editing)return`<div class="tm-card"><div class="tm-header"><div class="tm-num">${t.slot}</div><span style="font-size:13px;font-weight:700;color:var(--gray3)">編集中</span></div><div class="edit-form">${TACKLE_FIELDS.map(f=>`<div style="margin-bottom:6px"><div style="font-size:11px;color:var(--gray3);margin-bottom:2px">${f.label}</div><input type="text" id="fte-${t.slot}-${f.key}" value="${esc(t[f.key]||'')}" placeholder="${f.placeholder}"/></div>`).join('')}<div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="fSaveTackle(${t.slot})">保存</button><button class="btn btn-sm" onclick="fCancelEditTackle(${t.slot})">キャンセル</button>${!isEmpty?`<button class="btn btn-sm" onclick="fCopyTackle(${t.slot})">コピー</button>`:''}</div></div></div>`;
+  if(isEmpty)return`<div class="tm-card empty-slot" style="display:flex;align-items:center;justify-content:center;min-height:76px;gap:10px;cursor:pointer" onclick="fEditTackle(${t.slot})"><div class="tm-num">${t.slot}</div><span style="font-size:13px;color:#ccc">タップして登録</span></div>`;
+  return`<div class="tm-card"><div class="tm-header"><div class="tm-num">${t.slot}</div><span class="tm-name">${esc(t.name||'セット'+t.slot)}</span><div class="tm-actions"><button class="btn btn-xs" onclick="fCopyTackle(${t.slot})">コピー</button><button class="btn btn-xs" onclick="fEditTackle(${t.slot})">編集</button><button class="btn btn-xs btn-danger" onclick="fClearTackle(${t.slot})">削除</button></div></div><div class="tm-fields">${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>`<div class="tm-field"><span class="tm-key">${f.label}</span><span class="tm-val">${esc(t[f.key])}</span></div>`).join('')}</div></div>`;
+}
 function fEditTackle(slot){fState.tackles.forEach(t=>t.editing=false);fState.tackles.find(t=>t.slot===slot).editing=true;fRenderTackleGrid();}
 function fCancelEditTackle(slot){fState.tackles.find(t=>t.slot===slot).editing=false;fRenderTackleGrid();}
-function fSaveTackle(slot){
-  const t=fState.tackles.find(t=>t.slot===slot);
-  TACKLE_FIELDS.forEach(f=>{const el=document.getElementById('fte-'+slot+'-'+f.key);if(el)t[f.key]=el.value.trim();});
-  t.editing=false;fSave();fRenderTackleGrid();
-}
-function fClearTackle(slot){
-  if(!confirm('このスロットをクリアしますか？'))return;
-  const t=fState.tackles.find(t=>t.slot===slot);
-  TACKLE_FIELDS.forEach(f=>t[f.key]='');t.editing=false;fSave();fRenderTackleGrid();
-}
-function fCopyTackle(fromSlot){
-  const empty=fState.tackles.filter(t=>t.slot!==fromSlot&&!t.name&&!t.rod);
-  if(!empty.length){alert('空きスロットがありません');return;}
-  const src=fState.tackles.find(t=>t.slot===fromSlot);
-  const dst=empty[0];
-  TACKLE_FIELDS.forEach(f=>dst[f.key]=src[f.key]);
-  dst.name=(src.name||'セット'+fromSlot)+' (コピー)';
-  dst.editing=true;fSave();fRenderTackleGrid();
-}
+function fSaveTackle(slot){const t=fState.tackles.find(t=>t.slot===slot);TACKLE_FIELDS.forEach(f=>{const el=document.getElementById('fte-'+slot+'-'+f.key);if(el)t[f.key]=el.value.trim();});t.editing=false;fSave();fRenderTackleGrid();}
+function fClearTackle(slot){if(!confirm('このスロットをクリアしますか？'))return;const t=fState.tackles.find(t=>t.slot===slot);TACKLE_FIELDS.forEach(f=>t[f.key]='');t.editing=false;fSave();fRenderTackleGrid();}
+function fCopyTackle(fromSlot){const empty=fState.tackles.filter(t=>t.slot!==fromSlot&&!t.name&&!t.rod);if(!empty.length){alert('空きスロットがありません');return;}const src=fState.tackles.find(t=>t.slot===fromSlot);const dst=empty[0];TACKLE_FIELDS.forEach(f=>dst[f.key]=src[f.key]);dst.name=(src.name||'セット'+fromSlot)+' (コピー)';dst.editing=true;fSave();fRenderTackleGrid();}
 
-// 釣行タックル選択
 function fRenderTackleSelectGrid(){
   const grid=document.getElementById('f-tm-select-grid');
   const reg=fState.tackles.filter(t=>t.name||t.rod||t.reel);
-  if(!reg.length){grid.innerHTML='<p style="font-size:13px;color:#bbb">タックルタブでセットを登録してください</p>';document.getElementById('f-session-tackle-edit').innerHTML='';return;}
-  grid.innerHTML=reg.map(t=>{
-    const sel=fState.selectedTackleSlots.includes(t.slot);
-    return `<div class="tm-sel-item${sel?' selected':''}" onclick="fToggleTackleSelect(${t.slot})">
-      <div class="tm-num">${t.slot}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600">${esc(t.name||'セット'+t.slot)}</div>
-        <div style="font-size:11px;color:#888;margin-top:1px">${[t.rod,t.line].filter(Boolean).map(esc).join(' / ')}</div>
-      </div>
-      <span style="font-size:18px;color:${sel?'#3b82f6':'#ccc'}">${sel?'●':'○'}</span>
-    </div>`;}).join('');
+  if(!reg.length){grid.innerHTML='<p style="font-size:13px;color:#ccc">タックルタブでセットを登録してください</p>';document.getElementById('f-session-tackle-edit').innerHTML='';return;}
+  grid.innerHTML=reg.map(t=>{const sel=fState.selectedTackleSlots.includes(t.slot);return`<div class="tm-sel-item${sel?' selected':''}" onclick="fToggleTackleSelect(${t.slot})"><div class="tm-num">${t.slot}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">${esc(t.name||'セット'+t.slot)}</div><div style="font-size:11px;color:var(--gray3);margin-top:1px">${[t.rod,t.line].filter(Boolean).map(esc).join(' / ')}</div></div><span style="font-size:18px;color:${sel?'var(--red)':'#ccc'}">${sel?'●':'○'}</span></div>`;}).join('');
   fRenderSessionTackleEdit();
 }
-function fToggleTackleSelect(slot){
-  const idx=fState.selectedTackleSlots.indexOf(slot);
-  if(idx>=0){fState.selectedTackleSlots.splice(idx,1);delete fSte[slot];}
-  else{
-    fState.selectedTackleSlots.push(slot);
-    const base=fState.tackles.find(t=>t.slot===slot);
-    fSte[slot]={};
-    TACKLE_FIELDS.forEach(f=>fSte[slot][f.key]=base[f.key]||'');
-  }
-  fRenderTackleSelectGrid();
-}
+function fToggleTackleSelect(slot){const idx=fState.selectedTackleSlots.indexOf(slot);if(idx>=0){fState.selectedTackleSlots.splice(idx,1);delete fSte[slot];}else{fState.selectedTackleSlots.push(slot);const base=fState.tackles.find(t=>t.slot===slot);fSte[slot]={};TACKLE_FIELDS.forEach(f=>fSte[slot][f.key]=base[f.key]||'');}fRenderTackleSelectGrid();}
 function fRenderSessionTackleEdit(){
   const el=document.getElementById('f-session-tackle-edit');
   if(!fState.selectedTackleSlots.length){el.innerHTML='';return;}
-  el.innerHTML=`<div style="margin-top:10px"><div class="slabel">タックル詳細（ベースから変更可）</div>
-    ${fState.selectedTackleSlots.map(slot=>{
-      const base=fState.tackles.find(t=>t.slot===slot);
-      const edits=fSte[slot]||{};
-      const isModified=TACKLE_FIELDS.some(f=>f.key!=='name'&&edits[f.key]!==(base[f.key]||''));
-      return `<div class="stb" id="f-stb-${slot}">
-        <div class="stb-header">
-          <div class="stb-slot">${slot}</div>
-          <span class="stb-name">${esc(base.name||'セット'+slot)}</span>
-          <span class="stb-badge${isModified?' modified':''}">${isModified?'変更あり':'ベース通り'}</span>
-        </div>
-        <div class="stb-fields">
-          ${TACKLE_FIELDS.filter(f=>f.key!=='name').map(f=>{
-            const baseVal=base[f.key]||'';const curVal=edits[f.key]||'';const changed=curVal!==baseVal;
-            return `<div class="stb-field">
-              <span class="stb-key">${f.label}${changed?'<span class="modified-dot"></span>':''}</span>
-              <input type="text" value="${esc(curVal)}" placeholder="${f.placeholder}" class="${changed?'changed':''}"
-                oninput="fUpdateSTB(${slot},'${f.key}',this.value,this)"/></div>`;}).join('')}
-        </div>
-        <div style="margin-top:8px"><button class="btn btn-xs" onclick="fResetSTB(${slot})">↩ ベースに戻す</button></div>
-      </div>`;}).join('')}
-  </div>`;
+  el.innerHTML=`<div style="margin-top:10px"><div class="slabel">タックル詳細（ベースから変更可）</div>${fState.selectedTackleSlots.map(slot=>{const base=fState.tackles.find(t=>t.slot===slot);const edits=fSte[slot]||{};const isModified=TACKLE_FIELDS.some(f=>f.key!=='name'&&edits[f.key]!==(base[f.key]||''));return`<div class="stb" id="f-stb-${slot}"><div class="stb-header"><div class="stb-slot">${slot}</div><span class="stb-name">${esc(base.name||'セット'+slot)}</span><span class="stb-badge${isModified?' modified':''}">${isModified?'変更あり':'ベース通り'}</span></div><div class="stb-fields">${TACKLE_FIELDS.filter(f=>f.key!=='name').map(f=>{const baseVal=base[f.key]||'';const curVal=edits[f.key]||'';const changed=curVal!==baseVal;return`<div class="stb-field"><span class="stb-key">${f.label}${changed?'<span class="modified-dot"></span>':''}</span><input type="text" value="${esc(curVal)}" placeholder="${f.placeholder}" class="${changed?'changed':''}" oninput="fUpdateSTB(${slot},'${f.key}',this.value,this)"/></div>`;}).join('')}</div><div style="margin-top:8px"><button class="btn btn-xs" onclick="fResetSTB(${slot})">↩ ベースに戻す</button></div></div>`;}).join('')}</div>`;
 }
-function fUpdateSTB(slot,key,val,input){
-  if(!fSte[slot]) fSte[slot]={};
-  fSte[slot][key]=val;
-  const base=fState.tackles.find(t=>t.slot===slot);
-  input.className=val!==(base[key]||'')?'changed':'';
-  const edits=fSte[slot];
-  const isModified=TACKLE_FIELDS.some(f=>f.key!=='name'&&edits[f.key]!==(base[f.key]||''));
-  const badge=document.querySelector(`#f-stb-${slot} .stb-badge`);
-  if(badge){badge.className='stb-badge'+(isModified?' modified':'');badge.textContent=isModified?'変更あり':'ベース通り';}
-}
-function fResetSTB(slot){
-  const base=fState.tackles.find(t=>t.slot===slot);
-  fSte[slot]={};
-  TACKLE_FIELDS.forEach(f=>fSte[slot][f.key]=base[f.key]||'');
-  fRenderSessionTackleEdit();
-}
+function fUpdateSTB(slot,key,val,input){if(!fSte[slot])fSte[slot]={};fSte[slot][key]=val;const base=fState.tackles.find(t=>t.slot===slot);input.className=val!==(base[key]||'')?'changed':'';const edits=fSte[slot];const isModified=TACKLE_FIELDS.some(f=>f.key!=='name'&&edits[f.key]!==(base[f.key]||''));const badge=document.querySelector(`#f-stb-${slot} .stb-badge`);if(badge){badge.className='stb-badge'+(isModified?' modified':'');badge.textContent=isModified?'変更あり':'ベース通り';}}
+function fResetSTB(slot){const base=fState.tackles.find(t=>t.slot===slot);fSte[slot]={};TACKLE_FIELDS.forEach(f=>fSte[slot][f.key]=base[f.key]||'');fRenderSessionTackleEdit();}
 
-// 釣行開始
 function fStartSession(){
-  const date=document.getElementById('f-s-date').value;
-  const place=document.getElementById('f-s-place').value.trim();
+  const date=document.getElementById('f-s-date').value;const place=document.getElementById('f-s-place').value.trim();
   if(!date||!place){alert('日付と釣り場を入力してください');return;}
-  const tackles=fState.selectedTackleSlots.map(slot=>{
-    const base=fState.tackles.find(t=>t.slot===slot);
-    const edits=fSte[slot]||{};
-    TACKLE_FIELDS.filter(f=>f.key!=='name').forEach(f=>{
-      const inp=document.querySelector(`#f-stb-${slot} input[oninput*="'${f.key}'"]`);
-      if(inp) edits[f.key]=inp.value.trim();
-    });
-    const r={slot,baseSlot:slot,baseName:base.name||'セット'+slot};
-    TACKLE_FIELDS.forEach(f=>r[f.key]=edits[f.key]!==undefined?edits[f.key]:(base[f.key]||''));
-    return r;
-  });
-  const session={id:fState.nextSessionId++,date,place,
-    weather:document.getElementById('f-s-weather').value,
-    airTemp:document.getElementById('f-s-airtemp').value.trim(),
-    waterTemp:document.getElementById('f-s-watertemp').value.trim(),
-    tackles,memo:document.getElementById('f-s-memo').value.trim(),counts:{}};
-  fState.sessions.unshift(session);
-  fState.activeSessionId=session.id;
-  fState.selectedTackleSlots=[];fSte={};
+  const tackles=fState.selectedTackleSlots.map(slot=>{const base=fState.tackles.find(t=>t.slot===slot);const edits=fSte[slot]||{};TACKLE_FIELDS.filter(f=>f.key!=='name').forEach(f=>{const inp=document.querySelector(`#f-stb-${slot} input[oninput*="'${f.key}'"]`);if(inp)edits[f.key]=inp.value.trim();});const r={slot,baseSlot:slot,baseName:base.name||'セット'+slot};TACKLE_FIELDS.forEach(f=>r[f.key]=edits[f.key]!==undefined?edits[f.key]:(base[f.key]||''));return r;});
+  const session={id:fState.nextSessionId++,date,place,weather:document.getElementById('f-s-weather').value,airTemp:document.getElementById('f-s-airtemp').value.trim(),waterTemp:document.getElementById('f-s-watertemp').value.trim(),tackles,memo:document.getElementById('f-s-memo').value.trim(),counts:{},finished:false};
+  fState.sessions.unshift(session);fState.activeSessionId=session.id;fState.selectedTackleSlots=[];fSte={};
   ['f-s-airtemp','f-s-watertemp','f-s-memo','f-s-place'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-s-weather').value='';
-  document.getElementById('f-s-date').value=fTodayStr();
+  document.getElementById('f-s-weather').value='';document.getElementById('f-s-date').value=fTodayStr();
   fSave();fRenderSessionList();fSwitchTab('count');
 }
 function fSetActiveSession(id){fState.activeSessionId=id;fSave();fRenderSessionList();fSwitchTab('count');}
 function fRenderSessionList(){
-  const list=document.getElementById('f-session-list');
-  const empty=document.getElementById('f-session-empty');
+  const list=document.getElementById('f-session-list');const empty=document.getElementById('f-session-empty');
   if(!fState.sessions.length){list.innerHTML='';empty.style.display='';return;}
   empty.style.display='none';
   list.innerHTML=fState.sessions.map(s=>{
-    const total=fGetAllTotal(s.id);const isActive=s.id===fState.activeSessionId;
+    const total=fGetAllTotal(s.id);const isActive=s.id===fState.activeSessionId&&!s.finished;
     const tnames=s.tackles.map(t=>esc(t.name||'セット'+t.slot)).join('、');
-    return `<div class="session-card${isActive?' active-s':''}" onclick="fSetActiveSession(${s.id})">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-        <span style="font-size:14px;font-weight:600">${esc(s.date)}　${esc(s.place)}</span>
-        <span class="total-badge">${total} 匹</span>
-      </div>
-      <div style="font-size:12px;color:#888">${[s.weather,s.airTemp?s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div>
-      <div class="badges">
-        ${tnames?`<span class="badge">🎣 ${tnames}</span>`:''}
-        ${isActive?'<span class="badge" style="border-color:#3b82f6;color:#3b82f6">● 進行中</span>':s.finished?'<span class="badge" style="color:#9ca3af">✓ 終了</span>':'<span class="badge" style="color:#f59e0b;border-color:#fcd34d">一時停止中</span>'}
-      </div>
-    </div>`;}).join('');
+    return`<div class="session-card${isActive?' active-s':''}" onclick="fSetActiveSession(${s.id})"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px"><span style="font-size:14px;font-weight:700">${esc(s.date)}　${esc(s.place)}</span><span class="total-badge">${total} 匹</span></div><div style="font-size:12px;color:var(--gray3)">${[s.weather,s.airTemp?s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div><div class="badges">${tnames?`<span class="badge">🎣 ${tnames}</span>`:''}${s.finished?'<span class="badge" style="color:#9ca3af">✓ 終了</span>':isActive?'<span class="badge" style="border-color:var(--red);color:var(--red)">● 進行中</span>':'<span class="badge" style="color:#f59e0b;border-color:#fcd34d">一時停止中</span>'}</div></div>`;
+  }).join('');
 }
 
-// カウント
 function fGetCount(sid,lid,cid){const s=fState.sessions.find(s=>s.id===sid);return s?(s.counts[lid+'_'+cid]||0):0;}
 function fSetCount(sid,lid,cid,val){const s=fState.sessions.find(s=>s.id===sid);if(s)s.counts[lid+'_'+cid]=Math.max(0,val);}
 function fGetLureTotal(sid,lid){const s=fState.sessions.find(s=>s.id===sid);if(!s)return 0;return Object.entries(s.counts).filter(([k])=>k.startsWith(lid+'_')).reduce((a,[,v])=>a+v,0);}
 function fGetAllTotal(sid){const s=fState.sessions.find(s=>s.id===sid);if(!s)return 0;return Object.values(s.counts).reduce((a,v)=>a+v,0);}
+
 function fFinishSession(){
-  const session=fState.sessions.find(s=>s.id===fState.activeSessionId);
-  if(!session)return;
+  const session=fState.sessions.find(s=>s.id===fState.activeSessionId);if(!session)return;
   if(!confirm(`釣行を終了しますか？\n${session.date}　${session.place}　${fGetAllTotal(session.id)}匹\n\n終了後も履歴から閲覧できます。`))return;
   session.finished=true;session.finishedAt=new Date().toISOString();
   fState.activeSessionId=null;fSave();fRenderCountTab();fRenderSessionList();
+  fShowShareScreen(session.id);
+}
+function fShowShareScreen(sid){
+  const s=fState.sessions.find(s=>s.id===sid);if(!s)return;
+  const total=fGetAllTotal(sid);
+  document.getElementById('share-date').textContent=s.date||'';
+  document.getElementById('share-place').textContent=s.place||'';
+  document.getElementById('share-meta').textContent=[s.weather,s.airTemp?'気温'+s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).join('　');
+  document.getElementById('share-total-num').textContent=total;
+  const lureData=fState.lures.map(l=>({name:l.name,count:fGetLureTotal(sid,l.id)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,6);
+  const mx=lureData[0]?lureData[0].count:1;
+  document.getElementById('share-lure-list').innerHTML=lureData.length?lureData.map(l=>`<div class="share-lure-row"><span class="share-lure-name">${esc(l.name)}</span><div class="share-lure-bar-wrap"><div class="share-lure-bar" style="width:${Math.round(l.count/mx*100)}%"></div></div><span class="share-lure-cnt">${l.count}</span></div>`).join(''):'<div style="color:rgba(255,255,255,.3);font-size:13px">ノーフィッシュ</div>';
+  const ts=document.getElementById('share-tackle-section');
+  if(s.tackles.length){ts.innerHTML=`<div class="share-tackle-label">TACKLE</div>`+s.tackles.map(t=>`<div class="share-tackle-item"><span style="color:rgba(255,255,255,.8);font-weight:700">${esc(t.name||'セット'+t.slot)}</span>　${[t.rod,t.reel,t.line].filter(Boolean).map(esc).join(' / ')}</div>`).join('');ts.style.display='';}else ts.style.display='none';
+  const memo=document.getElementById('share-memo');
+  if(s.memo){memo.textContent=s.memo;memo.style.display='';}else memo.style.display='none';
+  showPage('share');
 }
 function fRenderCountTab(){
-  const infoEl=document.getElementById('f-active-session-info');
-  const listEl=document.getElementById('f-lure-count-list');
-  const emptyEl=document.getElementById('f-count-empty');
-  const sid=fState.activeSessionId;
-  const session=fState.sessions.find(s=>s.id===sid);
+  const infoEl=document.getElementById('f-active-session-info');const listEl=document.getElementById('f-lure-count-list');const emptyEl=document.getElementById('f-count-empty');
+  const sid=fState.activeSessionId;const session=fState.sessions.find(s=>s.id===sid);
   if(!session){infoEl.innerHTML='';listEl.innerHTML='';emptyEl.style.display='';return;}
-  emptyEl.style.display='none';
-  const finished=!!session.finished;
+  emptyEl.style.display='none';const finished=!!session.finished;
   const tnames=session.tackles.map(t=>esc(t.name||'セット'+t.slot)).join(' / ');
-  const bgColor=finished?'#f9fafb':'#eff6ff';
-  const borderColor=finished?'#e5e7eb':'#bfdbfe';
-  infoEl.innerHTML=`<div class="card" style="background:${bgColor};border-color:${borderColor}">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div>
-        <div style="font-size:14px;font-weight:600">${esc(session.date)}　${esc(session.place)}</div>
-        <div style="font-size:12px;color:#6b7280;margin-top:2px">${[session.weather,tnames].filter(Boolean).join('　／　')}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="total-badge" id="f-info-total-${sid}">${fGetAllTotal(sid)} 匹</span>
-        ${finished
-          ?'<span style="font-size:12px;color:#6b7280;background:#e5e7eb;padding:3px 10px;border-radius:999px">✓ 終了済み</span>'
-          :`<button class="btn btn-danger btn-sm" onclick="fFinishSession()">釣行を終了する</button>`}
-      </div>
-    </div>
-  </div>`;
-  const spoons=fState.lures.filter(l=>l.name.startsWith('スプーン'));
-  const others=fState.lures.filter(l=>!l.name.startsWith('スプーン'));
+  infoEl.innerHTML=`<div class="card" style="background:${finished?'#fafafa':'#fff5f5'};border-color:${finished?'var(--border)':'var(--red)'}"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div style="font-size:14px;font-weight:700">${esc(session.date)}　${esc(session.place)}</div><div style="font-size:12px;color:var(--gray3);margin-top:2px">${[session.weather,tnames].filter(Boolean).join('　／　')}</div></div><div style="display:flex;align-items:center;gap:8px"><span class="total-badge" id="f-info-total-${sid}">${fGetAllTotal(sid)} 匹</span>${finished?`<button class="btn btn-sm" onclick="fShowShareScreen(${sid})">📊 シェア画面</button>`:`<button class="btn btn-outline-red btn-sm" onclick="fFinishSession()">■ 釣行を終了</button>`}</div></div></div>`;
+  const spoons=fState.lures.filter(l=>l.name.startsWith('スプーン'));const others=fState.lures.filter(l=>!l.name.startsWith('スプーン'));
   let html='';
-  if(finished) html+='<p style="font-size:13px;color:#999;margin-bottom:10px">この釣行は終了しています。カウントの閲覧のみできます。</p>';
-  if(spoons.length) html+='<div class="group-label">🥄 スプーン</div>'+spoons.map(l=>fLureCard(sid,l,finished)).join('');
-  if(others.length) html+='<div class="group-label" style="margin-top:.9rem">🐟 プラグ・その他</div>'+others.map(l=>fLureCard(sid,l,finished)).join('');
+  if(finished)html+='<p style="font-size:13px;color:var(--gray3);margin-bottom:10px">この釣行は終了しています。閲覧のみできます。</p>';
+  if(spoons.length)html+='<div class="group-label">🥄 スプーン</div>'+spoons.map(l=>fLureCard(sid,l,finished)).join('');
+  if(others.length)html+='<div class="group-label" style="margin-top:.9rem">🐟 プラグ・その他</div>'+others.map(l=>fLureCard(sid,l,finished)).join('');
   listEl.innerHTML=html;
 }
 function fLureCard(sid,lure,finished){
-  return `<div class="card" style="margin-bottom:7px${finished?';opacity:.85':''}">
-    <div class="lure-header">
-      <span class="lure-name">${esc(lure.name)}</span>
-      <span class="total-badge" id="f-badge-${sid}-${lure.id}">計 ${fGetLureTotal(sid,lure.id)} 匹</span>
-    </div>
-    <div class="colors-grid">
-      ${lure.colors.length?lure.colors.map(c=>`
-        <div class="color-item">
-          <span class="color-dot" style="background:${c.hex}"></span>
-          <span class="color-label">${esc(c.name)}</span>
-          ${finished
-            ?`<span style="font-size:14px;font-weight:600;min-width:20px;text-align:right;color:#555">${fGetCount(sid,lure.id,c.id)}</span>`
-            :`<div class="count-ctrl">
-              <button class="cnt-btn" onclick="fChangeCount(${sid},${lure.id},${c.id},-1)">−</button>
-              <span class="cnt-num" id="f-cnt-${sid}-${lure.id}-${c.id}">${fGetCount(sid,lure.id,c.id)}</span>
-              <button class="cnt-btn" onclick="fChangeCount(${sid},${lure.id},${c.id},1)">＋</button>
-            </div>`}
-        </div>`).join(''):'<span style="font-size:12px;color:#bbb">カラー未登録</span>'}
-    </div>
-  </div>`;
+  return`<div class="card" style="margin-bottom:7px${finished?';opacity:.8':''}"><div class="lure-header"><span class="lure-name">${esc(lure.name)}</span><span class="total-badge" id="f-badge-${sid}-${lure.id}">計 ${fGetLureTotal(sid,lure.id)} 匹</span></div><div class="colors-grid">${lure.colors.length?lure.colors.map(c=>`<div class="color-item"><span class="color-dot" style="background:${c.hex}"></span><span class="color-label">${esc(c.name)}</span>${finished?`<span style="font-size:14px;font-weight:700;min-width:20px;text-align:right;color:#555">${fGetCount(sid,lure.id,c.id)}</span>`:`<div class="count-ctrl"><button class="cnt-btn" onclick="fChangeCount(${sid},${lure.id},${c.id},-1)">−</button><span class="cnt-num" id="f-cnt-${sid}-${lure.id}-${c.id}">${fGetCount(sid,lure.id,c.id)}</span><button class="cnt-btn" onclick="fChangeCount(${sid},${lure.id},${c.id},1)">＋</button></div>`}</div>`).join(''):'<span style="font-size:12px;color:#ccc">カラー未登録</span>'}</div></div>`;
 }
-function fChangeCount(sid,lid,cid,delta){
-  fSetCount(sid,lid,cid,fGetCount(sid,lid,cid)+delta);
-  const el=document.getElementById('f-cnt-'+sid+'-'+lid+'-'+cid);if(el)el.textContent=fGetCount(sid,lid,cid);
-  const badge=document.getElementById('f-badge-'+sid+'-'+lid);if(badge)badge.textContent='計 '+fGetLureTotal(sid,lid)+' 匹';
-  const it=document.getElementById('f-info-total-'+sid);if(it)it.textContent=fGetAllTotal(sid)+' 匹';
-  fSave();
-}
+function fChangeCount(sid,lid,cid,delta){fSetCount(sid,lid,cid,fGetCount(sid,lid,cid)+delta);const el=document.getElementById('f-cnt-'+sid+'-'+lid+'-'+cid);if(el)el.textContent=fGetCount(sid,lid,cid);const badge=document.getElementById('f-badge-'+sid+'-'+lid);if(badge)badge.textContent='計 '+fGetLureTotal(sid,lid)+' 匹';const it=document.getElementById('f-info-total-'+sid);if(it)it.textContent=fGetAllTotal(sid)+' 匹';fSave();}
 
-// 履歴
 function fRenderHistory(){
   const list=document.getElementById('f-history-list');const empty=document.getElementById('f-history-empty');
   if(!fState.sessions.length){list.innerHTML='';empty.style.display='';return;}
@@ -713,331 +584,106 @@ function fRenderHistory(){
   list.innerHTML=fState.sessions.map(s=>{
     const total=fGetAllTotal(s.id);
     const top=fState.lures.map(l=>({name:l.name,count:fGetLureTotal(s.id,l.id)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,3);
-    return `<div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div>
-          <div style="font-size:15px;font-weight:600">${esc(s.date)}　${esc(s.place)}</div>
-          <div style="font-size:12px;color:#888;margin-top:2px">${[s.weather,s.airTemp?'気温'+s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div>
-        </div>
-        <span class="total-badge">${total} 匹</span>
-      </div>
-      ${s.tackles.length?`<div class="divider"></div><div class="slabel">タックル</div>
-        ${s.tackles.map(t=>{
-          const base=fState.tackles.find(b=>b.slot===t.baseSlot);
-          const hasEdit=base&&TACKLE_FIELDS.some(f=>f.key!=='name'&&t[f.key]!==(base[f.key]||''));
-          return `<div style="margin-bottom:8px">
-            <div style="font-size:12px;font-weight:600;margin-bottom:4px;color:#666;display:flex;align-items:center;gap:6px">
-              <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#f0f0f0;font-size:10px">${t.slot}</span>
-              ${esc(t.name||'セット'+t.slot)}
-              ${hasEdit?'<span style="font-size:10px;color:#d97706;border:1px solid #fcd34d;padding:1px 6px;border-radius:999px">カスタム</span>':''}
-            </div>
-            <div class="hist-tackle">
-              ${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>{
-                const bv=base?base[f.key]||'':'';const changed=t[f.key]!==bv&&bv!=='';
-                return `<div class="hist-trow"><span class="hist-key">${f.label}</span><span class="hist-val${changed?' changed':''}">${esc(t[f.key])}</span></div>`;}).join('')}
-            </div>
-          </div>`;}).join('')}`:''}
-      ${top.length?`<div class="divider"></div><div class="slabel">釣果上位ルアー</div>
-        <div style="display:flex;flex-wrap:wrap;gap:5px">${top.map((l,i)=>`<span class="badge">${i+1}. ${esc(l.name)} ${l.count}匹</span>`).join('')}</div>`:''}
-      ${s.memo?`<div class="divider"></div><div style="font-size:13px;color:#666">${esc(s.memo)}</div>`:''}
-    </div>`;}).join('');
+    return`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div style="font-size:15px;font-weight:700">${esc(s.date)}　${esc(s.place)}</div><div style="font-size:12px;color:var(--gray3);margin-top:2px">${[s.weather,s.airTemp?'気温'+s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"><span class="total-badge">${total} 匹</span><button class="btn btn-xs" onclick="fShowShareScreen(${s.id})">📊 シェア</button></div></div>${s.tackles.length?`<div class="divider"></div><div class="slabel">タックル</div>${s.tackles.map(t=>{const base=fState.tackles.find(b=>b.slot===t.baseSlot);const hasEdit=base&&TACKLE_FIELDS.some(f=>f.key!=='name'&&t[f.key]!==(base[f.key]||''));return`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;margin-bottom:4px;color:#666;display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--black);color:var(--white);font-size:10px">${t.slot}</span>${esc(t.name||'セット'+t.slot)}${hasEdit?'<span style="font-size:10px;color:#d97706;border:1px solid #fcd34d;padding:1px 6px;border-radius:999px">カスタム</span>':''}</div><div class="hist-tackle">${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>{const bv=base?base[f.key]||'':'';const changed=t[f.key]!==bv&&bv!=='';return`<div class="hist-trow"><span class="hist-key">${f.label}</span><span class="hist-val${changed?' changed':''}">${esc(t[f.key])}</span></div>`;}).join('')}</div></div>`;}).join('')}`:''}${top.length?`<div class="divider"></div><div class="slabel">釣果上位ルアー</div><div style="display:flex;flex-wrap:wrap;gap:5px">${top.map((l,i)=>`<span class="badge">${i+1}. ${esc(l.name)} ${l.count}匹</span>`).join('')}</div>`:''}${s.memo?`<div class="divider"></div><div style="font-size:13px;color:#666">${esc(s.memo)}</div>`:''}</div>`;
+  }).join('');
 }
-
-// 集計
 function fRenderStats(){
   const total=fState.sessions.reduce((a,s)=>a+fGetAllTotal(s.id),0);
   document.getElementById('f-stat-total').textContent=total;
   document.getElementById('f-stat-sessions').textContent=fState.sessions.length;
-  const used=new Set();
-  fState.sessions.forEach(s=>Object.entries(s.counts).forEach(([k,v])=>{if(v>0)used.add(k.split('_')[0]);}));
+  const used=new Set();fState.sessions.forEach(s=>Object.entries(s.counts).forEach(([k,v])=>{if(v>0)used.add(k.split('_')[0]);}));
   document.getElementById('f-stat-lure-types').textContent=used.size;
   const rd=fState.lures.map(l=>({name:l.name,count:fState.sessions.reduce((a,s)=>a+fGetLureTotal(s.id,l.id),0)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
-  const mx=rd[0]?rd[0].count:1;
-  const rl=document.getElementById('f-rank-list');const re=document.getElementById('f-rank-empty');
-  if(!rd.length){rl.innerHTML='';re.style.display='';return;}
-  re.style.display='none';
-  rl.innerHTML=rd.map((item,i)=>`<div class="rank-item">
-    <span class="rank-num">${i+1}</span><span class="rank-name">${esc(item.name)}</span>
-    <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(item.count/mx*100)}%"></div></div>
-    <span class="rank-cnt">${item.count}</span></div>`).join('');
+  const mx=rd[0]?rd[0].count:1;const rl=document.getElementById('f-rank-list');const re=document.getElementById('f-rank-empty');
+  if(!rd.length){rl.innerHTML='';re.style.display='';return;}re.style.display='none';
+  rl.innerHTML=rd.map((item,i)=>`<div class="rank-item"><span class="rank-num">${i+1}</span><span class="rank-name">${esc(item.name)}</span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(item.count/mx*100)}%"></div></div><span class="rank-cnt">${item.count}</span></div>`).join('');
 }
-
-// ルアー管理
 function fAddLure(){const name=document.getElementById('f-new-lure-name').value.trim();if(!name)return;fState.lures.push({id:fState.nextLureId++,name,colors:[]});document.getElementById('f-new-lure-name').value='';fSave();fRenderManageTab();}
 function fDeleteLure(id){if(!confirm('このルアーを削除しますか？'))return;fState.lures=fState.lures.filter(l=>l.id!==id);fSave();fRenderManageTab();}
-function fAddColor(lureId){
-  const ne=document.getElementById('f-color-name-'+lureId);const he=document.getElementById('f-color-hex-'+lureId);
-  const name=ne.value.trim();if(!name)return;
-  const lure=fState.lures.find(l=>l.id===lureId);
-  const nid=lure.colors.length?Math.max(...lure.colors.map(c=>c.id))+1:1;
-  lure.colors.push({id:nid,name,hex:he.value});ne.value='';fSave();fRenderManageTab();
-}
+function fAddColor(lureId){const ne=document.getElementById('f-color-name-'+lureId);const he=document.getElementById('f-color-hex-'+lureId);const name=ne.value.trim();if(!name)return;const lure=fState.lures.find(l=>l.id===lureId);const nid=lure.colors.length?Math.max(...lure.colors.map(c=>c.id))+1:1;lure.colors.push({id:nid,name,hex:he.value});ne.value='';fSave();fRenderManageTab();}
 function fDeleteColor(lureId,colorId){const lure=fState.lures.find(l=>l.id===lureId);lure.colors=lure.colors.filter(c=>c.id!==colorId);fSave();fRenderManageTab();}
 function fUpdateColorName(lureId,colorId,val){const lure=fState.lures.find(l=>l.id===lureId);const color=lure&&lure.colors.find(c=>c.id===colorId);if(color){color.name=val;fSave();}}
 function fUpdateColorHex(lureId,colorId,val){const lure=fState.lures.find(l=>l.id===lureId);const color=lure&&lure.colors.find(c=>c.id===colorId);if(color){color.hex=val;fSave();}}
 function fRenderManageTab(){
-  document.getElementById('f-manage-lure-list').innerHTML=fState.lures.map(lure=>`
-    <div class="card">
-      <div class="lure-header">
-        <span class="lure-name">${esc(lure.name)}</span>
-        <button class="btn btn-danger btn-sm" onclick="fDeleteLure(${lure.id})">削除</button>
-      </div>
-      <div>
-        ${lure.colors.map(c=>`<div class="mc-row">
-          <input type="color" value="${c.hex}" oninput="fUpdateColorHex(${lure.id},${c.id},this.value)" onchange="fUpdateColorHex(${lure.id},${c.id},this.value)"/>
-          <input type="text" value="${esc(c.name)}" oninput="fUpdateColorName(${lure.id},${c.id},this.value)" placeholder="カラー名"/>
-          <button class="btn btn-danger btn-xs" onclick="fDeleteColor(${lure.id},${c.id})">削除</button>
-        </div>`).join('')}
-        ${!lure.colors.length?'<p style="font-size:12px;color:#bbb;padding:4px 0">カラーがありません</p>':''}
-      </div>
-      <div class="ac-row">
-        <input type="color" id="f-color-hex-${lure.id}" value="#3399ff"/>
-        <input type="text" id="f-color-name-${lure.id}" placeholder="新しいカラー名"/>
-        <button class="btn btn-sm" onclick="fAddColor(${lure.id})">+ 追加</button>
-      </div>
-    </div>`).join('');
+  document.getElementById('f-manage-lure-list').innerHTML=fState.lures.map(lure=>`<div class="card"><div class="lure-header"><span class="lure-name">${esc(lure.name)}</span><button class="btn btn-danger btn-sm" onclick="fDeleteLure(${lure.id})">削除</button></div><div>${lure.colors.map(c=>`<div class="mc-row"><input type="color" value="${c.hex}" oninput="fUpdateColorHex(${lure.id},${c.id},this.value)" onchange="fUpdateColorHex(${lure.id},${c.id},this.value)"/><input type="text" value="${esc(c.name)}" oninput="fUpdateColorName(${lure.id},${c.id},this.value)" placeholder="カラー名"/><button class="btn btn-danger btn-xs" onclick="fDeleteColor(${lure.id},${c.id})">削除</button></div>`).join('')}${!lure.colors.length?'<p style="font-size:12px;color:#ccc;padding:4px 0">カラーがありません</p>':''}</div><div class="ac-row"><input type="color" id="f-color-hex-${lure.id}" value="#3399ff"/><input type="text" id="f-color-name-${lure.id}" placeholder="新しいカラー名"/><button class="btn btn-sm" onclick="fAddColor(${lure.id})">+ 追加</button></div></div>`).join('');
 }
 
-// ══════════════════════════════════════════
-//  トーナメント (prefix: t)
-// ══════════════════════════════════════════
-let tMode='casual';
-let tPlayers=[{name:'選手1'},{name:'選手2'}];
+// ══ トーナメント ══
+let tMode='casual',tPlayers=[{name:'選手1'},{name:'選手2'}];
 let tTimer={total:0,rotaDuration:0,remaining:0,rota:1,maxRota:3,running:false,interval:null};
-let tCounts=[];
-let tHistory=[];
-
+let tCounts=[],tHistory=[];
 function tLoadHistory(){try{const d=localStorage.getItem('toracan_t');if(d)tHistory=JSON.parse(d);}catch(e){}}
 function tSaveHistory(){try{localStorage.setItem('toracan_t',JSON.stringify(tHistory));}catch(e){}}
-
-function tSelectMode(m){
-  tMode=m;
-  document.getElementById('tmc-casual').className='mode-card'+(m==='casual'?' selected':'');
-  document.getElementById('tmc-official').className='mode-card'+(m==='official'?' selected':'');
-  document.getElementById('t-official-fields').style.display=m==='official'?'block':'none';
-}
-function tRenderPlayerInputs(){
-  document.getElementById('t-player-inputs').innerHTML=tPlayers.map((p,i)=>`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-      <span style="width:20px;height:20px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span>
-      <input type="text" value="${esc(p.name)}" placeholder="選手名" oninput="tPlayers[${i}].name=this.value" style="flex:1"/>
-    </div>`).join('');
-}
+function tSelectMode(m){tMode=m;document.getElementById('tmc-casual').className='mode-card'+(m==='casual'?' selected':'');document.getElementById('tmc-official').className='mode-card'+(m==='official'?' selected':'');document.getElementById('t-official-fields').style.display=m==='official'?'block':'none';}
+function tRenderPlayerInputs(){document.getElementById('t-player-inputs').innerHTML=tPlayers.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="width:20px;height:20px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span><input type="text" value="${esc(p.name)}" placeholder="選手名" oninput="tPlayers[${i}].name=this.value" style="flex:1"/></div>`).join('');}
 function tAddPlayer(){if(tPlayers.length>=5)return;tPlayers.push({name:'選手'+(tPlayers.length+1)});tRenderPlayerInputs();}
 function tRemovePlayer(){if(tPlayers.length<=2)return;tPlayers.pop();tRenderPlayerInputs();}
-function tUpdateRotaPreview(){
-  const dur=parseInt(document.getElementById('t-duration').value)||30;
-  const rota=parseInt(document.getElementById('t-rota').value)||1;
-  document.getElementById('t-rota-preview').textContent=`1ローテ = 約${Math.floor(dur/rota)}分`;
-}
+function tUpdateRotaPreview(){const dur=parseInt(document.getElementById('t-duration').value)||30;const rota=parseInt(document.getElementById('t-rota').value)||1;document.getElementById('t-rota-preview').textContent=`1ローテ = 約${Math.floor(dur/rota)}分`;}
 document.getElementById('t-duration').addEventListener('input',tUpdateRotaPreview);
 document.getElementById('t-rota').addEventListener('input',tUpdateRotaPreview);
-
 function tStart(){
   document.querySelectorAll('#t-player-inputs input').forEach((inp,i)=>{if(tPlayers[i])tPlayers[i].name=inp.value.trim()||'選手'+(i+1);});
-  const dur=parseInt(document.getElementById('t-duration').value)||30;
-  const maxRota=parseInt(document.getElementById('t-rota').value)||1;
-  const totalSec=dur*60;
-  const rotaSec=Math.floor(totalSec/maxRota);
-  tTimer={total:totalSec,rotaDuration:rotaSec,remaining:rotaSec,rota:1,maxRota,running:false,interval:null};
-  tCounts=tPlayers.map(()=>0);
-  tSwitchScreen('game');
-  document.getElementById('t-game-title').textContent=
-    tMode==='official'?[document.getElementById('t-name').value.trim(),document.getElementById('t-place').value.trim()].filter(Boolean).join('　／　')||'本格モード':'カジュアルモード';
+  const dur=parseInt(document.getElementById('t-duration').value)||30;const maxRota=parseInt(document.getElementById('t-rota').value)||1;
+  const rotaSec=Math.floor(dur*60/maxRota);
+  tTimer={total:dur*60,rotaDuration:rotaSec,remaining:rotaSec,rota:1,maxRota,running:false,interval:null};
+  tCounts=tPlayers.map(()=>0);tSwitchScreen('game');
+  document.getElementById('t-game-title').textContent=tMode==='official'?[document.getElementById('t-name').value.trim(),document.getElementById('t-place').value.trim()].filter(Boolean).join('　／　')||'本格モード':'カジュアルモード';
   tRenderPlayers();tUpdateTimerDisplay();
-  document.getElementById('t-btn-startstop').textContent='▶ スタート';
-  document.getElementById('t-btn-startstop').className='btn btn-green';
+  document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';
 }
-
-// タイマー
 function tToggleTimer(){if(tTimer.running)tPause();else tPlay();}
-function tPlay(){
-  if(tTimer.remaining<=0)return;
-  tTimer.running=true;
-  document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';
-  document.getElementById('t-btn-startstop').className='btn btn-yellow';
-  tTimer.interval=setInterval(tTick,1000);
-}
-function tPause(){
-  tTimer.running=false;clearInterval(tTimer.interval);
-  document.getElementById('t-btn-startstop').textContent='▶ スタート';
-  document.getElementById('t-btn-startstop').className='btn btn-green';
-}
-function tTick(){
-  tTimer.remaining--;tUpdateTimerDisplay();
-  if(tTimer.remaining<=0){clearInterval(tTimer.interval);tTimer.running=false;
-    if(tTimer.rota<tTimer.maxRota)tTriggerRotaEnd();else tTriggerGameEnd();}
-}
+function tPlay(){if(tTimer.remaining<=0)return;tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);}
+function tPause(){tTimer.running=false;clearInterval(tTimer.interval);document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';}
+function tTick(){tTimer.remaining--;tUpdateTimerDisplay();if(tTimer.remaining<=0){clearInterval(tTimer.interval);tTimer.running=false;if(tTimer.rota<tTimer.maxRota)tTriggerRotaEnd();else tTriggerGameEnd();}}
 function tUpdateTimerDisplay(){
   const m=Math.floor(tTimer.remaining/60),s=tTimer.remaining%60;
-  const str=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
-  const el=document.getElementById('t-timer-display');
-  el.textContent=str;
-  const ratio=tTimer.remaining/tTimer.rotaDuration;
-  el.className='timer-time'+(ratio<=0.1?' danger':ratio<=0.25?' warning':'');
-  const fill=document.getElementById('t-progress-fill');
-  fill.style.width=(ratio*100)+'%';
-  fill.className='progress-fill'+(ratio<=0.1?' danger':ratio<=0.25?' warning':'');
+  const el=document.getElementById('t-timer-display');el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const ratio=tTimer.remaining/tTimer.rotaDuration;el.className='timer-time'+(ratio<=0.1?' danger':ratio<=0.25?' warning':'');
+  const fill=document.getElementById('t-progress-fill');fill.style.width=(ratio*100)+'%';fill.className='progress-fill'+(ratio<=0.1?' danger':ratio<=0.25?' warning':'');
   document.getElementById('t-rota-label').innerHTML=`ローテ <span class="rota-badge">${tTimer.rota} / ${tTimer.maxRota}</span>`;
 }
-function tNextRota(){
-  if(tTimer.rota>=tTimer.maxRota){tTriggerGameEnd();return;}
-  clearInterval(tTimer.interval);tTimer.running=false;
-  tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;
-  document.getElementById('t-btn-startstop').textContent='▶ スタート';
-  document.getElementById('t-btn-startstop').className='btn btn-green';
-  tUpdateTimerDisplay();
-}
-function tResetRota(){
-  clearInterval(tTimer.interval);tTimer.running=false;
-  tTimer.remaining=tTimer.rotaDuration;
-  document.getElementById('t-btn-startstop').textContent='▶ スタート';
-  document.getElementById('t-btn-startstop').className='btn btn-green';
-  tUpdateTimerDisplay();
-}
-function tTriggerRotaEnd(){
-  tPlayAlarm(false);
-  tFlash(3,()=>{
-    tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tUpdateTimerDisplay();
-    document.getElementById('t-btn-startstop').textContent='▶ スタート';
-    document.getElementById('t-btn-startstop').className='btn btn-green';
-    alert(`ローテーション ${tTimer.rota-1} 終了！\n次のローテ（${tTimer.rota}/${tTimer.maxRota}）の準備をしてください。`);
-  });
-}
+function tNextRota(){if(tTimer.rota>=tTimer.maxRota){tTriggerGameEnd();return;}clearInterval(tTimer.interval);tTimer.running=false;tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
+function tResetRota(){clearInterval(tTimer.interval);tTimer.running=false;tTimer.remaining=tTimer.rotaDuration;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
+function tTriggerRotaEnd(){tPlayAlarm(false);tFlash(3,()=>{tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tUpdateTimerDisplay();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';alert(`ローテーション ${tTimer.rota-1} 終了！\n次のローテ（${tTimer.rota}/${tTimer.maxRota}）の準備をしてください。`);});}
 function tTriggerGameEnd(){tPlayAlarm(true);tFlash(5,()=>tShowResult());}
 function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tShowResult();}
-
-function tFlash(times,cb){
-  let c=0;const iv=setInterval(()=>{
-    document.body.classList.toggle('alarm');c++;
-    if(c>=times*2){clearInterval(iv);document.body.classList.remove('alarm');if(cb)cb();}
-  },300);
-}
-function tPlayAlarm(isEnd){
-  try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
-    const notes=isEnd?[523,659,784,1047]:[523,659,523];
-    let t=ctx.currentTime;
-    notes.forEach(freq=>{
-      const osc=ctx.createOscillator(),gain=ctx.createGain();
-      osc.connect(gain);gain.connect(ctx.destination);
-      osc.frequency.value=freq;osc.type='sine';
-      gain.gain.setValueAtTime(.3,t);gain.gain.exponentialRampToValueAtTime(.001,t+.3);
-      osc.start(t);osc.stop(t+.3);t+=.25;
-    });
-  }catch(e){}
-}
-
-// 選手カウンター
+function tFlash(times,cb){let c=0;const iv=setInterval(()=>{document.body.classList.toggle('alarm');c++;if(c>=times*2){clearInterval(iv);document.body.classList.remove('alarm');if(cb)cb();}},300);}
+function tPlayAlarm(isEnd){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const notes=isEnd?[523,659,784,1047]:[523,659,523];let t=ctx.currentTime;notes.forEach(freq=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=freq;osc.type='sine';gain.gain.setValueAtTime(.3,t);gain.gain.exponentialRampToValueAtTime(.001,t+.3);osc.start(t);osc.stop(t+.3);t+=.25;});}catch(e){}}
 function tRenderPlayers(){
   const sorted=[...tCounts.map((c,i)=>({i,count:c}))].sort((a,b)=>b.count-a.count);
-  document.getElementById('t-players-grid').innerHTML=tCounts.map((c,i)=>{
-    const rank=sorted.findIndex(s=>s.i===i)+1;
-    const rc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
-    return `<div class="player-card">
-      <div class="player-rank ${rc}" id="t-pr-${i}">${rank}</div>
-      <span class="player-name-t">${esc(tPlayers[i]?.name||'選手'+(i+1))}</span>
-      <span class="player-count-t" id="t-pc-${i}">${c}</span>
-      <div class="cnt-btns">
-        <button class="cnt-btn-lg" onclick="tAdd(${i})">＋</button>
-        <button class="cnt-btn-lg" style="font-size:16px" onclick="tSub(${i})">−</button>
-      </div>
-    </div>`;}).join('');
+  document.getElementById('t-players-grid').innerHTML=tCounts.map((c,i)=>{const rank=sorted.findIndex(s=>s.i===i)+1;const rc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';return`<div class="player-card"><div class="player-rank ${rc}" id="t-pr-${i}">${rank}</div><span class="player-name-t">${esc(tPlayers[i]?.name||'選手'+(i+1))}</span><span class="player-count-t" id="t-pc-${i}">${c}</span><div class="cnt-btns"><button class="cnt-btn-lg" onclick="tAdd(${i})">＋</button><button class="cnt-btn-lg" style="font-size:16px" onclick="tSub(${i})">−</button></div></div>`;}).join('');
 }
-function tAdd(i){
-  tCounts[i]++;
-  document.getElementById('t-pc-'+i).textContent=tCounts[i];
-  tRerank();
-}
-function tSub(i){
-  if(tCounts[i]<=0)return;
-  tCounts[i]--;
-  document.getElementById('t-pc-'+i).textContent=tCounts[i];
-  tRerank();
-}
-function tRerank(){
-  const sorted=[...tCounts.map((c,i)=>({i,count:c}))].sort((a,b)=>b.count-a.count);
-  tCounts.forEach((_,i)=>{
-    const rank=sorted.findIndex(s=>s.i===i)+1;
-    const el=document.getElementById('t-pr-'+i);
-    if(el){el.textContent=rank;el.className='player-rank'+(rank===1?' gold':rank===2?' silver':rank===3?' bronze':'');}
-  });
-}
-
-// 結果
+function tAdd(i){tCounts[i]++;document.getElementById('t-pc-'+i).textContent=tCounts[i];tRerank();}
+function tSub(i){if(tCounts[i]<=0)return;tCounts[i]--;document.getElementById('t-pc-'+i).textContent=tCounts[i];tRerank();}
+function tRerank(){const sorted=[...tCounts.map((c,i)=>({i,count:c}))].sort((a,b)=>b.count-a.count);tCounts.forEach((_,i)=>{const rank=sorted.findIndex(s=>s.i===i)+1;const el=document.getElementById('t-pr-'+i);if(el){el.textContent=rank;el.className='player-rank'+(rank===1?' gold':rank===2?' silver':rank===3?' bronze':'');}});}
 function tShowResult(){
-  tSwitchScreen('result');
-  const results=tCounts.map((c,i)=>({name:tPlayers[i]?.name||'選手'+(i+1),count:c})).sort((a,b)=>b.count-a.count);
+  tSwitchScreen('result');const results=tCounts.map((c,i)=>({name:tPlayers[i]?.name||'選手'+(i+1),count:c})).sort((a,b)=>b.count-a.count);
   const medals=['🥇','🥈','🥉','4位','5位'];
-  document.getElementById('t-result-sub').textContent=
-    tMode==='official'?[document.getElementById('t-name').value,document.getElementById('t-place').value].filter(Boolean).join('　'):'カジュアルモード';
-  document.getElementById('t-result-podium').innerHTML=results.map((r,i)=>`
-    <div class="result-row" style="${i===0?'border-color:#fbbf24;border-width:2px':''}">
-      <span class="result-rank">${medals[i]||i+1+'位'}</span>
-      <span class="result-name">${esc(r.name)}</span>
-      <span class="result-fish">${r.count} 匹</span>
-    </div>`).join('');
-  if(tMode==='official'){
-    tHistory.unshift({
-      id:Date.now(),
-      tournamentName:document.getElementById('t-name').value.trim(),
-      place:document.getElementById('t-place').value.trim(),
-      date:document.getElementById('t-date').value,
-      time:document.getElementById('t-time').value,
-      duration:Math.floor(tTimer.total/60),
-      rota:tTimer.maxRota,results,
-    });
-    tSaveHistory();
-  }
+  document.getElementById('t-result-sub').textContent=tMode==='official'?[document.getElementById('t-name').value,document.getElementById('t-place').value].filter(Boolean).join('　'):'カジュアルモード';
+  document.getElementById('t-result-podium').innerHTML=results.map((r,i)=>`<div class="result-row" style="${i===0?'border-color:#fbbf24;border-width:2px':''}"><span class="result-rank">${medals[i]||i+1+'位'}</span><span class="result-name">${esc(r.name)}</span><span class="result-fish">${r.count} 匹</span></div>`).join('');
+  if(tMode==='official'){tHistory.unshift({id:Date.now(),tournamentName:document.getElementById('t-name').value.trim(),place:document.getElementById('t-place').value.trim(),date:document.getElementById('t-date').value,time:document.getElementById('t-time').value,duration:Math.floor(tTimer.total/60),rota:tTimer.maxRota,results});tSaveHistory();}
 }
-
-// 履歴
 function tShowHistory(){
-  tSwitchScreen('history');
-  const list=document.getElementById('t-history-list');
-  const empty=document.getElementById('t-history-empty');
-  if(!tHistory.length){list.innerHTML='';empty.style.display='';return;}
-  empty.style.display='none';
+  tSwitchScreen('history');const list=document.getElementById('t-history-list');const empty=document.getElementById('t-history-empty');
+  if(!tHistory.length){list.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   const medals=['🥇','🥈','🥉'];
-  list.innerHTML=tHistory.map(r=>`
-    <div class="hist-card">
-      <div class="hist-header-t">
-        <span class="hist-title-t">${esc(r.tournamentName||'大会')}</span>
-        <span class="hist-meta-t">${r.date||''}${r.time?' '+r.time:''}</span>
-      </div>
-      <div style="font-size:12px;color:#888;margin-bottom:6px">${[r.place,r.duration?r.duration+'分':'',r.rota?r.rota+'ローテ':''].filter(Boolean).join('　／　')}</div>
-      <div class="hist-players-t">
-        ${r.results.map((p,i)=>`<span class="hist-player-t">${medals[i]||''} ${esc(p.name)} ${p.count}匹</span>`).join('')}
-      </div>
-    </div>`).join('');
+  list.innerHTML=tHistory.map(r=>`<div class="hist-card"><div class="hist-header-t"><span class="hist-title-t">${esc(r.tournamentName||'大会')}</span><span class="hist-meta-t">${r.date||''}${r.time?' '+r.time:''}</span></div><div style="font-size:12px;color:var(--gray3);margin-bottom:6px">${[r.place,r.duration?r.duration+'分':'',r.rota?r.rota+'ローテ':''].filter(Boolean).join('　／　')}</div><div class="hist-players-t">${r.results.map((p,i)=>`<span class="hist-player-t">${medals[i]||''} ${esc(p.name)} ${p.count}匹</span>`).join('')}</div></div>`).join('');
 }
-function tGoSetup(){
-  clearInterval(tTimer.interval);tTimer.running=false;
-  document.body.classList.remove('alarm');
-  tSwitchScreen('setup');
-}
-function tSwitchScreen(s){
-  ['setup','game','result','history'].forEach(id=>document.getElementById('tscreen-'+id).className='section'+(id===s?' active':''));
-}
+function tGoSetup(){clearInterval(tTimer.interval);tTimer.running=false;document.body.classList.remove('alarm');tSwitchScreen('setup');}
+function tSwitchScreen(s){['setup','game','result','history'].forEach(id=>document.getElementById('tscreen-'+id).className='section'+(id===s?' active':''));}
 
-// ══════════════════════════════════════════
-//  共通ユーティリティ
-// ══════════════════════════════════════════
+// ══ ユーティリティ ══
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fTodayStr(){const n=new Date();const p=v=>String(v).padStart(2,'0');return`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;}
 
-// ── 初期化 ──
-fLoad();
-tLoadHistory();
+// ══ 初期化 ══
+fLoad();tLoadHistory();
 document.getElementById('f-s-date').value=fTodayStr();
-fRenderTackleGrid();
-fRenderManageTab();
-fRenderSessionList();
-tRenderPlayerInputs();
-tUpdateRotaPreview();
-const _now=new Date(),_p=v=>String(v).padStart(2,'0');
-document.getElementById('t-date').value=`${_now.getFullYear()}-${_p(_now.getMonth()+1)}-${_p(_now.getDate())}`;
-document.getElementById('t-time').value=`${_p(_now.getHours())}:${_p(_now.getMinutes())}`;
+fRenderTackleGrid();fRenderManageTab();fRenderSessionList();
+tRenderPlayerInputs();tUpdateRotaPreview();
+const _n=new Date(),_p=v=>String(v).padStart(2,'0');
+document.getElementById('t-date').value=`${_n.getFullYear()}-${_p(_n.getMonth()+1)}-${_p(_n.getDate())}`;
+document.getElementById('t-time').value=`${_p(_n.getHours())}:${_p(_n.getMinutes())}`;
 </script>
 </body>
 </html>
