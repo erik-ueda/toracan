@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>エリアトラウト 釣果カウンター</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;background:#f5f5f0;color:#1a1a1a;font-size:15px;}
+.app{max-width:700px;margin:0 auto;padding:1rem;}
+h1{font-size:18px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;gap:8px;}
+.tabs{display:flex;gap:6px;margin-bottom:1.2rem;flex-wrap:wrap;}
+.tab{padding:7px 13px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#666;cursor:pointer;font-size:13px;font-weight:500;}
+.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.section{display:none;}.section.active{display:block;}
+.card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;}
+.card-title{font-size:14px;font-weight:600;margin-bottom:10px;color:#333;}
+.slabel{font-size:11px;font-weight:600;color:#999;letter-spacing:.06em;text-transform:uppercase;margin:10px 0 5px;}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:7px;margin-bottom:7px;}
+input[type="text"],input[type="date"],select,textarea{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:#1a1a1a;outline:none;}
+input[type="text"]:focus,input[type="date"]:focus,select:focus,textarea:focus{border-color:#666;}
+textarea{resize:vertical;min-height:52px;}
+.btn{padding:8px 14px;background:#fff;border:1px solid #ddd;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:#1a1a1a;white-space:nowrap;font-family:inherit;}
+.btn:hover{background:#f5f5f0;}
+.btn:active{transform:scale(.98);}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a;}
+.btn-primary:hover{background:#333;}
+.btn-info{border-color:#3b82f6;color:#3b82f6;}
+.btn-info:hover{background:#eff6ff;}
+.btn-danger{color:#ef4444;border-color:#fca5a5;}
+.btn-danger:hover{background:#fef2f2;}
+.btn-sm{padding:5px 10px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+.divider{height:1px;background:#f0f0f0;margin:10px 0;}
+/* タックルマスター */
+.tm-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-bottom:10px;}
+.tm-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:.9rem 1rem;}
+.tm-card.empty-slot{border-style:dashed;background:#fafaf8;}
+.tm-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.tm-num{width:22px;height:22px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.tm-name{font-size:13px;font-weight:600;flex:1;}
+.tm-actions{display:flex;gap:4px;}
+.tm-fields{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;}
+.tm-field{display:flex;flex-direction:column;gap:1px;}
+.tm-key{font-size:10px;color:#999;}
+.tm-val{font-size:12px;color:#333;}
+.edit-form{background:#f9f9f7;border-radius:8px;padding:.85rem;margin-top:8px;}
+.edit-form input{font-size:13px;}
+/* 釣行タックル編集 */
+.stb{border:1px solid #e8e8e8;border-radius:10px;padding:.8rem;margin-bottom:8px;background:#fff;}
+.stb-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.stb-slot{width:20px;height:20px;border-radius:50%;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.stb-name{font-size:13px;font-weight:600;flex:1;}
+.stb-badge{font-size:11px;color:#999;background:#f0f0f0;padding:2px 7px;border-radius:999px;}
+.stb-badge.modified{color:#d97706;background:#fef3c7;border:1px solid #fcd34d;}
+.stb-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:6px;}
+.stb-field{display:flex;flex-direction:column;gap:2px;}
+.stb-key{font-size:10px;color:#999;}
+.stb-field input{font-size:13px;height:32px;}
+.stb-field input.changed{border-color:#f59e0b;}
+.modified-dot{width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;margin-left:3px;vertical-align:middle;}
+/* タックル選択 */
+.tm-sel-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:8px;margin-bottom:8px;}
+.tm-sel-item{border:1px solid #e8e8e8;border-radius:10px;padding:8px 10px;cursor:pointer;display:flex;align-items:center;gap:8px;background:#fff;}
+.tm-sel-item:hover{background:#f9f9f7;}
+.tm-sel-item.selected{border-color:#3b82f6;background:#eff6ff;}
+.tm-sel-item .tm-num{background:#f0f0f0;}
+.tm-sel-item.selected .tm-num{background:#3b82f6;color:#fff;}
+/* セッション */
+.session-card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1rem 1.2rem;margin-bottom:10px;cursor:pointer;}
+.session-card:hover{background:#fafaf8;}
+.session-card.active-s{border-color:#3b82f6;border-width:2px;}
+.total-badge{font-size:12px;background:#eff6ff;color:#3b82f6;padding:3px 9px;border-radius:999px;font-weight:600;white-space:nowrap;}
+.badge{font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid #e8e8e8;color:#666;}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+/* カウント */
+.lure-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.lure-name{font-size:14px;font-weight:600;}
+.colors-grid{display:flex;flex-wrap:wrap;gap:7px;}
+.color-item{display:flex;align-items:center;gap:7px;border:1px solid #e8e8e8;border-radius:8px;padding:6px 10px;min-width:128px;background:#fafaf8;}
+.color-dot{width:12px;height:12px;border-radius:50%;border:1px solid rgba(0,0,0,.1);flex-shrink:0;}
+.color-label{font-size:12px;color:#555;flex:1;}
+.count-ctrl{display:flex;align-items:center;gap:6px;}
+.cnt-btn{width:26px;height:26px;border-radius:50%;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;color:#333;line-height:1;font-family:inherit;}
+.cnt-btn:hover{background:#f0f0f0;}
+.cnt-btn:active{transform:scale(.92);}
+.cnt-num{font-size:16px;font-weight:600;min-width:20px;text-align:center;}
+.group-label{font-size:11px;font-weight:600;color:#999;text-transform:uppercase;letter-spacing:.06em;margin:1rem 0 5px;}
+/* 集計 */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.2rem;}
+.stat-card{background:#fff;border-radius:10px;padding:.9rem;border:1px solid #e8e8e8;}
+.stat-label{font-size:12px;color:#888;margin-bottom:3px;}
+.stat-num{font-size:24px;font-weight:700;}
+.rank-item{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #f0f0f0;}
+.rank-num{font-size:12px;color:#999;width:16px;}
+.rank-bar-wrap{flex:1;height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;}
+.rank-bar{height:100%;background:#3b82f6;border-radius:4px;}
+.rank-name{font-size:12px;width:155px;}
+.rank-cnt{font-size:13px;font-weight:600;width:28px;text-align:right;}
+.empty{color:#bbb;font-size:14px;padding:2.5rem 0;text-align:center;}
+/* 履歴 */
+.hist-tackle{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:4px 12px;margin:5px 0;}
+.hist-trow{display:flex;flex-direction:column;gap:1px;}
+.hist-key{font-size:10px;color:#999;}
+.hist-val{font-size:12px;color:#333;}
+.hist-val.changed{color:#d97706;}
+/* ルアー管理 */
+.mc-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid #f0f0f0;flex-wrap:wrap;}
+.mc-row:last-of-type{border-bottom:none;}
+.mc-row input[type="color"]{width:34px;height:28px;padding:2px 3px;cursor:pointer;border-radius:6px;border:1px solid #ddd;flex-shrink:0;}
+.mc-row input[type="text"]{flex:1;min-width:80px;font-size:13px;height:30px;}
+.ac-row{display:flex;gap:7px;align-items:center;margin-top:9px;padding-top:8px;border-top:1px solid #f0f0f0;flex-wrap:wrap;}
+.ac-row input[type="color"]{width:38px;height:34px;padding:2px 3px;cursor:pointer;border-radius:6px;border:1px solid #ddd;flex-shrink:0;}
+.ac-row input[type="text"]{flex:1;min-width:100px;font-size:13px;}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🎣 エリアトラウト 釣果カウンター</h1>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('tackle')">タックル</button>
+  <button class="tab" onclick="switchTab('session')">釣行</button>
+  <button class="tab" onclick="switchTab('count')">カウント</button>
+  <button class="tab" onclick="switchTab('history')">履歴</button>
+  <button class="tab" onclick="switchTab('stats')">集計</button>
+  <button class="tab" onclick="switchTab('manage')">ルアー管理</button>
+</div>
+
+<!-- タックルマスター -->
+<div class="section active" id="tab-tackle">
+  <p style="font-size:13px;color:#888;margin-bottom:12px">最大6セットのベースタックルを登録。釣行時に呼び出してその場で微調整できます。</p>
+  <div class="tm-grid" id="tm-grid"></div>
+</div>
+
+<!-- 釣行 -->
+<div class="section" id="tab-session">
+  <div class="card">
+    <div class="card-title">新しい釣行を開始</div>
+    <div class="slabel">基本情報</div>
+    <div class="fgrid">
+      <input type="date" id="s-date" />
+      <input type="text" id="s-place" placeholder="釣り場・エリア名" />
+    </div>
+    <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
+      <select id="s-weather"><option value="">天気</option><option>☀️ 晴れ</option><option>⛅ 曇り</option><option>🌧 雨</option><option>❄️ 雪</option></select>
+      <input type="text" id="s-airtemp" placeholder="気温（℃）" />
+      <input type="text" id="s-watertemp" placeholder="水温（℃）" />
+    </div>
+    <div class="divider"></div>
+    <div class="slabel">ベースタックルを選択（複数可）</div>
+    <div class="tm-sel-grid" id="tm-select-grid"></div>
+    <div id="session-tackle-edit"></div>
+    <div class="divider"></div>
+    <textarea id="s-memo" placeholder="メモ（任意）" style="margin-bottom:8px"></textarea>
+    <button class="btn btn-primary" onclick="startSession()">▶ 釣行を開始</button>
+  </div>
+  <div class="slabel">過去の釣行</div>
+  <div id="session-list"></div>
+  <p class="empty" id="session-empty" style="display:none">まだ釣行記録がありません。</p>
+</div>
+
+<!-- カウント -->
+<div class="section" id="tab-count">
+  <div id="active-session-info" style="margin-bottom:10px"></div>
+  <div id="lure-count-list"></div>
+  <p class="empty" id="count-empty" style="display:none">「釣行」タブから釣行を開始してください。</p>
+</div>
+
+<!-- 履歴 -->
+<div class="section" id="tab-history">
+  <div id="history-list"></div>
+  <p class="empty" id="history-empty" style="display:none">まだ記録がありません。</p>
+</div>
+
+<!-- 集計 -->
+<div class="section" id="tab-stats">
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">総釣果数</div><div class="stat-num" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">釣行回数</div><div class="stat-num" id="stat-sessions">0</div></div>
+    <div class="stat-card"><div class="stat-label">使用ルアー種</div><div class="stat-num" id="stat-lure-types">0</div></div>
+  </div>
+  <div class="slabel">ルアー別釣果ランキング</div>
+  <div id="rank-list"></div>
+  <p class="empty" id="rank-empty" style="display:none">まだデータがありません。</p>
+</div>
+
+<!-- ルアー管理 -->
+<div class="section" id="tab-manage">
+  <div class="card">
+    <div class="card-title">新しいルアーを追加</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="new-lure-name" placeholder="ルアー名（例: ペレット、フェザージグ）" style="flex:1;min-width:150px" />
+      <button class="btn" onclick="addLure()">+ 追加</button>
+    </div>
+  </div>
+  <div id="manage-lure-list"></div>
+</div>
+</div>
+
+<script>
+const DEFAULT_LURES=[
+  {id:1,name:'スプーン 〜1g',colors:[{id:1,name:'ゴールド',hex:'#FFD700'},{id:2,name:'シルバー',hex:'#C0C0C0'},{id:3,name:'ピンク',hex:'#FF69B4'}]},
+  {id:2,name:'スプーン 1.1〜1.5g',colors:[{id:1,name:'ゴールド',hex:'#FFD700'},{id:2,name:'シルバー',hex:'#C0C0C0'},{id:3,name:'オレンジ',hex:'#FF8C00'}]},
+  {id:3,name:'スプーン 1.6〜2g',colors:[{id:1,name:'ゴールド',hex:'#FFD700'},{id:2,name:'シルバー',hex:'#C0C0C0'},{id:3,name:'チャート',hex:'#BFDF00'}]},
+  {id:4,name:'スプーン 2g〜',colors:[{id:1,name:'ゴールド',hex:'#FFD700'},{id:2,name:'シルバー',hex:'#C0C0C0'},{id:3,name:'ブラック',hex:'#444444'}]},
+  {id:5,name:'クランクベイト（シンキング）',colors:[{id:1,name:'チャート',hex:'#BFDF00'},{id:2,name:'ナチュラル',hex:'#8FBC8F'},{id:3,name:'レッド',hex:'#FF4444'}]},
+  {id:6,name:'ミノー',colors:[{id:1,name:'レッドヘッド',hex:'#FF4444'},{id:2,name:'オリーブ',hex:'#808000'}]},
+  {id:7,name:'ボトムプラグ',colors:[{id:1,name:'ブラウン',hex:'#8B4513'},{id:2,name:'オリーブ',hex:'#808000'},{id:3,name:'チャート',hex:'#BFDF00'}]},
+  {id:8,name:'トップウォーター',colors:[{id:1,name:'ホワイト',hex:'#DDDDDD'},{id:2,name:'チャート',hex:'#BFDF00'},{id:3,name:'ブラック',hex:'#444444'}]},
+];
+const TACKLE_FIELDS=[
+  {key:'name',label:'セット名',placeholder:'例: メインタックル'},
+  {key:'rod',label:'ロッド',placeholder:'例: 60UL'},
+  {key:'reel',label:'リール',placeholder:'例: 1000番'},
+  {key:'line',label:'ライン',placeholder:'例: PE 0.3号'},
+  {key:'leader',label:'リーダー',placeholder:'例: フロロ 3lb'},
+  {key:'hook',label:'針',placeholder:'例: #8 バーブレス'},
+];
+let sessionTackleEdits={};
+let state={
+  lures:JSON.parse(JSON.stringify(DEFAULT_LURES)),
+  tackles:Array.from({length:6},(_,i)=>({slot:i+1,name:'',rod:'',reel:'',line:'',leader:'',hook:'',editing:false})),
+  sessions:[],activeSessionId:null,nextLureId:9,nextSessionId:1,selectedTackleSlots:[],
+};
+
+function save(){try{localStorage.setItem('atc_state',JSON.stringify(state));}catch(e){}}
+function load(){try{const d=localStorage.getItem('atc_state');if(d){const p=JSON.parse(d);state=Object.assign(state,p);}}catch(e){}}
+
+function switchTab(tab){
+  const names=['tackle','session','count','history','stats','manage'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',names[i]===tab));
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  if(tab==='session'){renderSessionList();renderTackleSelectGrid();}
+  if(tab==='count') renderCountTab();
+  if(tab==='history') renderHistory();
+  if(tab==='stats') renderStats();
+}
+
+// ── タックルマスター ──
+function renderTackleGrid(){document.getElementById('tm-grid').innerHTML=state.tackles.map(tmCard).join('');}
+function tmCard(t){
+  const isEmpty=!t.name&&!t.rod&&!t.reel&&!t.line&&!t.leader&&!t.hook;
+  if(t.editing){return `<div class="tm-card">
+    <div class="tm-header"><div class="tm-num">${t.slot}</div><span style="font-size:13px;font-weight:600;color:#888">編集中</span></div>
+    <div class="edit-form">
+      ${TACKLE_FIELDS.map(f=>`<div style="margin-bottom:6px"><div style="font-size:11px;color:#999;margin-bottom:2px">${f.label}</div>
+        <input type="text" id="te-${t.slot}-${f.key}" value="${esc(t[f.key]||'')}" placeholder="${f.placeholder}" /></div>`).join('')}
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="saveTackle(${t.slot})">保存</button>
+        <button class="btn btn-sm" onclick="cancelEditTackle(${t.slot})">キャンセル</button>
+        ${!isEmpty?`<button class="btn btn-sm" onclick="copyTackle(${t.slot})">コピー</button>`:''}
+      </div>
+    </div></div>`;}
+  if(isEmpty){return `<div class="tm-card empty-slot" style="display:flex;align-items:center;justify-content:center;min-height:76px;gap:10px;cursor:pointer" onclick="editTackle(${t.slot})">
+    <div class="tm-num">${t.slot}</div><span style="font-size:13px;color:#bbb">タップして登録</span></div>`;}
+  return `<div class="tm-card">
+    <div class="tm-header">
+      <div class="tm-num">${t.slot}</div>
+      <span class="tm-name">${esc(t.name||'セット'+t.slot)}</span>
+      <div class="tm-actions">
+        <button class="btn btn-xs" onclick="copyTackle(${t.slot})">コピー</button>
+        <button class="btn btn-xs" onclick="editTackle(${t.slot})">編集</button>
+        <button class="btn btn-xs btn-danger" onclick="clearTackle(${t.slot})">削除</button>
+      </div>
+    </div>
+    <div class="tm-fields">
+      ${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>`<div class="tm-field"><span class="tm-key">${f.label}</span><span class="tm-val">${esc(t[f.key])}</span></div>`).join('')}
+    </div></div>`;}
+function editTackle(slot){state.tackles.forEach(t=>t.editing=false);state.tackles.find(t=>t.slot===slot).editing=true;renderTackleGrid();}
+function cancelEditTackle(slot){state.tackles.find(t=>t.slot===slot).editing=false;renderTackleGrid();}
+function saveTackle(slot){
+  const t=state.tackles.find(t=>t.slot===slot);
+  TACKLE_FIELDS.forEach(f=>{const el=document.getElementById('te-'+slot+'-'+f.key);if(el)t[f.key]=el.value.trim();});
+  t.editing=false;save();renderTackleGrid();
+}
+function clearTackle(slot){
+  if(!confirm('このスロットをクリアしますか？'))return;
+  const t=state.tackles.find(t=>t.slot===slot);
+  TACKLE_FIELDS.forEach(f=>t[f.key]='');t.editing=false;save();renderTackleGrid();
+}
+function copyTackle(fromSlot){
+  const empty=state.tackles.filter(t=>t.slot!==fromSlot&&!t.name&&!t.rod);
+  if(!empty.length){alert('空きスロットがありません');return;}
+  const src=state.tackles.find(t=>t.slot===fromSlot);
+  const dst=empty[0];
+  TACKLE_FIELDS.forEach(f=>dst[f.key]=src[f.key]);
+  dst.name=(src.name||'セット'+fromSlot)+' (コピー)';
+  dst.editing=true;save();renderTackleGrid();
+}
+
+// ── 釣行タックル選択 ──
+function renderTackleSelectGrid(){
+  const grid=document.getElementById('tm-select-grid');
+  const reg=state.tackles.filter(t=>t.name||t.rod||t.reel);
+  if(!reg.length){grid.innerHTML='<p style="font-size:13px;color:#bbb">タックルタブでセットを登録してください</p>';document.getElementById('session-tackle-edit').innerHTML='';return;}
+  grid.innerHTML=reg.map(t=>{
+    const sel=state.selectedTackleSlots.includes(t.slot);
+    return `<div class="tm-sel-item${sel?' selected':''}" onclick="toggleTackleSelect(${t.slot})">
+      <div class="tm-num">${t.slot}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">${esc(t.name||'セット'+t.slot)}</div>
+        <div style="font-size:11px;color:#888;margin-top:1px">${[t.rod,t.line].filter(Boolean).map(esc).join(' / ')}</div>
+      </div>
+      <span style="font-size:18px;color:${sel?'#3b82f6':'#ccc'}">${sel?'●':'○'}</span>
+    </div>`;}).join('');
+  renderSessionTackleEdit();
+}
+function toggleTackleSelect(slot){
+  const idx=state.selectedTackleSlots.indexOf(slot);
+  if(idx>=0){state.selectedTackleSlots.splice(idx,1);delete sessionTackleEdits[slot];}
+  else{
+    state.selectedTackleSlots.push(slot);
+    const base=state.tackles.find(t=>t.slot===slot);
+    sessionTackleEdits[slot]={};
+    TACKLE_FIELDS.forEach(f=>sessionTackleEdits[slot][f.key]=base[f.key]||'');
+  }
+  renderTackleSelectGrid();
+}
+function renderSessionTackleEdit(){
+  const el=document.getElementById('session-tackle-edit');
+  if(!state.selectedTackleSlots.length){el.innerHTML='';return;}
+  el.innerHTML=`<div style="margin-top:10px"><div class="slabel">タックル詳細（ベースから変更可）</div>
+    ${state.selectedTackleSlots.map(slot=>{
+      const base=state.tackles.find(t=>t.slot===slot);
+      const edits=sessionTackleEdits[slot]||{};
+      const isModified=TACKLE_FIELDS.some(f=>f.key!=='name'&&edits[f.key]!==(base[f.key]||''));
+      return `<div class="stb" id="stb-${slot}">
+        <div class="stb-header">
+          <div class="stb-slot">${slot}</div>
+          <span class="stb-name">${esc(base.name||'セット'+slot)}</span>
+          <span class="stb-badge${isModified?' modified':''}">${isModified?'変更あり':'ベース通り'}</span>
+        </div>
+        <div class="stb-fields">
+          ${TACKLE_FIELDS.filter(f=>f.key!=='name').map(f=>{
+            const baseVal=base[f.key]||'';const curVal=edits[f.key]||'';const changed=curVal!==baseVal;
+            return `<div class="stb-field">
+              <span class="stb-key">${f.label}${changed?'<span class="modified-dot"></span>':''}</span>
+              <input type="text" value="${esc(curVal)}" placeholder="${f.placeholder}" class="${changed?'changed':''}"
+                oninput="updateSTB(${slot},'${f.key}',this.value,this)" /></div>`;}).join('')}
+        </div>
+        <div style="margin-top:8px"><button class="btn btn-xs" onclick="resetSTB(${slot})">↩ ベースに戻す</button></div>
+      </div>`;}).join('')}
+  </div>`;
+}
+function updateSTB(slot,key,val,input){
+  if(!sessionTackleEdits[slot]) sessionTackleEdits[slot]={};
+  sessionTackleEdits[slot][key]=val;
+  const base=state.tackles.find(t=>t.slot===slot);
+  const baseVal=base[f.key]||''; // just update border
+  input.className=val!==(base[key]||'')?'changed':'';
+  const edits=sessionTackleEdits[slot];
+  const isModified=TACKLE_FIELDS.some(f=>f.key!=='name'&&edits[f.key]!==(base[f.key]||''));
+  const badge=document.querySelector(`#stb-${slot} .stb-badge`);
+  if(badge){badge.className='stb-badge'+(isModified?' modified':'');badge.textContent=isModified?'変更あり':'ベース通り';}
+}
+function resetSTB(slot){
+  const base=state.tackles.find(t=>t.slot===slot);
+  sessionTackleEdits[slot]={};
+  TACKLE_FIELDS.forEach(f=>sessionTackleEdits[slot][f.key]=base[f.key]||'');
+  renderSessionTackleEdit();
+}
+
+// ── 釣行開始 ──
+function startSession(){
+  const date=document.getElementById('s-date').value;
+  const place=document.getElementById('s-place').value.trim();
+  if(!date||!place){alert('日付と釣り場を入力してください');return;}
+  const tackles=state.selectedTackleSlots.map(slot=>{
+    const base=state.tackles.find(t=>t.slot===slot);
+    const edits=sessionTackleEdits[slot]||{};
+    // 画面上の最新値を取得
+    TACKLE_FIELDS.filter(f=>f.key!=='name').forEach(f=>{
+      const inp=document.querySelector(`#stb-${slot} input[oninput*="'${f.key}'"]`);
+      if(inp) edits[f.key]=inp.value.trim();
+    });
+    const r={slot,baseSlot:slot,baseName:base.name||'セット'+slot};
+    TACKLE_FIELDS.forEach(f=>r[f.key]=edits[f.key]!==undefined?edits[f.key]:(base[f.key]||''));
+    return r;
+  });
+  const session={id:state.nextSessionId++,date,place,
+    weather:document.getElementById('s-weather').value,
+    airTemp:document.getElementById('s-airtemp').value.trim(),
+    waterTemp:document.getElementById('s-watertemp').value.trim(),
+    tackles,memo:document.getElementById('s-memo').value.trim(),counts:{}};
+  state.sessions.unshift(session);
+  state.activeSessionId=session.id;
+  state.selectedTackleSlots=[];sessionTackleEdits={};
+  ['s-airtemp','s-watertemp','s-memo','s-place'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('s-weather').value='';
+  document.getElementById('s-date').value=todayStr();
+  save();renderSessionList();switchTab('count');
+}
+function setActiveSession(id){state.activeSessionId=id;save();renderSessionList();switchTab('count');}
+function renderSessionList(){
+  const list=document.getElementById('session-list');
+  const empty=document.getElementById('session-empty');
+  if(!state.sessions.length){list.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  list.innerHTML=state.sessions.map(s=>{
+    const total=getAllTotal(s.id);const isActive=s.id===state.activeSessionId;
+    const tnames=s.tackles.map(t=>esc(t.name||'セット'+t.slot)).join('、');
+    return `<div class="session-card${isActive?' active-s':''}" onclick="setActiveSession(${s.id})">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:14px;font-weight:600">${esc(s.date)}　${esc(s.place)}</span>
+        <span class="total-badge">${total} 匹</span>
+      </div>
+      <div style="font-size:12px;color:#888">${[s.weather,s.airTemp?s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div>
+      <div class="badges">
+        ${tnames?`<span class="badge">🎣 ${tnames}</span>`:''}
+        ${isActive?'<span class="badge" style="border-color:#3b82f6;color:#3b82f6">● 進行中</span>':''}
+      </div>
+    </div>`;}).join('');
+}
+
+// ── カウント ──
+function getCount(sid,lid,cid){const s=state.sessions.find(s=>s.id===sid);return s?(s.counts[lid+'_'+cid]||0):0;}
+function setCount(sid,lid,cid,val){const s=state.sessions.find(s=>s.id===sid);if(s)s.counts[lid+'_'+cid]=Math.max(0,val);}
+function getLureTotal(sid,lid){const s=state.sessions.find(s=>s.id===sid);if(!s)return 0;return Object.entries(s.counts).filter(([k])=>k.startsWith(lid+'_')).reduce((a,[,v])=>a+v,0);}
+function getAllTotal(sid){const s=state.sessions.find(s=>s.id===sid);if(!s)return 0;return Object.values(s.counts).reduce((a,v)=>a+v,0);}
+function renderCountTab(){
+  const infoEl=document.getElementById('active-session-info');
+  const listEl=document.getElementById('lure-count-list');
+  const emptyEl=document.getElementById('count-empty');
+  const sid=state.activeSessionId;
+  const session=state.sessions.find(s=>s.id===sid);
+  if(!session){infoEl.innerHTML='';listEl.innerHTML='';emptyEl.style.display='';return;}
+  emptyEl.style.display='none';
+  const tnames=session.tackles.map(t=>esc(t.name||'セット'+t.slot)).join(' / ');
+  infoEl.innerHTML=`<div class="card" style="background:#eff6ff;border-color:#bfdbfe">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:14px;font-weight:600">${esc(session.date)}　${esc(session.place)}</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:2px">${[session.weather,tnames].filter(Boolean).join('　／　')}</div>
+      </div>
+      <span class="total-badge" id="info-total-${sid}">${getAllTotal(sid)} 匹</span>
+    </div>
+  </div>`;
+  const spoons=state.lures.filter(l=>l.name.startsWith('スプーン'));
+  const others=state.lures.filter(l=>!l.name.startsWith('スプーン'));
+  let html='';
+  if(spoons.length) html+='<div class="group-label">🥄 スプーン</div>'+spoons.map(l=>lureCard(sid,l)).join('');
+  if(others.length) html+='<div class="group-label" style="margin-top:.9rem">🐟 プラグ・その他</div>'+others.map(l=>lureCard(sid,l)).join('');
+  listEl.innerHTML=html;
+}
+function lureCard(sid,lure){
+  return `<div class="card" style="margin-bottom:7px">
+    <div class="lure-header">
+      <span class="lure-name">${esc(lure.name)}</span>
+      <span class="total-badge" id="badge-${sid}-${lure.id}">計 ${getLureTotal(sid,lure.id)} 匹</span>
+    </div>
+    <div class="colors-grid">
+      ${lure.colors.length?lure.colors.map(c=>`
+        <div class="color-item">
+          <span class="color-dot" style="background:${c.hex}"></span>
+          <span class="color-label">${esc(c.name)}</span>
+          <div class="count-ctrl">
+            <button class="cnt-btn" onclick="changeCount(${sid},${lure.id},${c.id},-1)">−</button>
+            <span class="cnt-num" id="cnt-${sid}-${lure.id}-${c.id}">${getCount(sid,lure.id,c.id)}</span>
+            <button class="cnt-btn" onclick="changeCount(${sid},${lure.id},${c.id},1)">＋</button>
+          </div>
+        </div>`).join(''):'<span style="font-size:12px;color:#bbb">カラー未登録</span>'}
+    </div>
+  </div>`;}
+function changeCount(sid,lid,cid,delta){
+  setCount(sid,lid,cid,getCount(sid,lid,cid)+delta);
+  const el=document.getElementById('cnt-'+sid+'-'+lid+'-'+cid);if(el)el.textContent=getCount(sid,lid,cid);
+  const badge=document.getElementById('badge-'+sid+'-'+lid);if(badge)badge.textContent='計 '+getLureTotal(sid,lid)+' 匹';
+  const it=document.getElementById('info-total-'+sid);if(it)it.textContent=getAllTotal(sid)+' 匹';
+  save();
+}
+
+// ── 履歴 ──
+function renderHistory(){
+  const list=document.getElementById('history-list');const empty=document.getElementById('history-empty');
+  if(!state.sessions.length){list.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  list.innerHTML=state.sessions.map(s=>{
+    const total=getAllTotal(s.id);
+    const top=state.lures.map(l=>({name:l.name,count:getLureTotal(s.id,l.id)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,3);
+    return `<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div style="font-size:15px;font-weight:600">${esc(s.date)}　${esc(s.place)}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${[s.weather,s.airTemp?'気温'+s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div>
+        </div>
+        <span class="total-badge">${total} 匹</span>
+      </div>
+      ${s.tackles.length?`<div class="divider"></div><div class="slabel">タックル</div>
+        ${s.tackles.map(t=>{
+          const base=state.tackles.find(b=>b.slot===t.baseSlot);
+          const hasEdit=base&&TACKLE_FIELDS.some(f=>f.key!=='name'&&t[f.key]!==(base[f.key]||''));
+          return `<div style="margin-bottom:8px">
+            <div style="font-size:12px;font-weight:600;margin-bottom:4px;color:#666;display:flex;align-items:center;gap:6px">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#f0f0f0;font-size:10px">${t.slot}</span>
+              ${esc(t.name||'セット'+t.slot)}
+              ${hasEdit?'<span style="font-size:10px;color:#d97706;border:1px solid #fcd34d;padding:1px 6px;border-radius:999px">カスタム</span>':''}
+            </div>
+            <div class="hist-tackle">
+              ${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>{
+                const bv=base?base[f.key]||'':'';const changed=t[f.key]!==bv&&bv!=='';
+                return `<div class="hist-trow"><span class="hist-key">${f.label}</span><span class="hist-val${changed?' changed':''}">${esc(t[f.key])}</span></div>`;}).join('')}
+            </div>
+          </div>`;}).join('')}`:''}
+      ${top.length?`<div class="divider"></div><div class="slabel">釣果上位ルアー</div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${top.map((l,i)=>`<span class="badge">${i+1}. ${esc(l.name)} ${l.count}匹</span>`).join('')}</div>`:''}
+      ${s.memo?`<div class="divider"></div><div style="font-size:13px;color:#666">${esc(s.memo)}</div>`:''}
+    </div>`;}).join('');
+}
+
+// ── 集計 ──
+function renderStats(){
+  const total=state.sessions.reduce((a,s)=>a+getAllTotal(s.id),0);
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-sessions').textContent=state.sessions.length;
+  const used=new Set();
+  state.sessions.forEach(s=>Object.entries(s.counts).forEach(([k,v])=>{if(v>0)used.add(k.split('_')[0]);}));
+  document.getElementById('stat-lure-types').textContent=used.size;
+  const rd=state.lures.map(l=>({name:l.name,count:state.sessions.reduce((a,s)=>a+getLureTotal(s.id,l.id),0)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
+  const mx=rd[0]?rd[0].count:1;
+  const rl=document.getElementById('rank-list');const re=document.getElementById('rank-empty');
+  if(!rd.length){rl.innerHTML='';re.style.display='';return;}
+  re.style.display='none';
+  rl.innerHTML=rd.map((item,i)=>`<div class="rank-item">
+    <span class="rank-num">${i+1}</span><span class="rank-name">${esc(item.name)}</span>
+    <div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(item.count/mx*100)}%"></div></div>
+    <span class="rank-cnt">${item.count}</span></div>`).join('');
+}
+
+// ── ルアー管理 ──
+function addLure(){const name=document.getElementById('new-lure-name').value.trim();if(!name)return;state.lures.push({id:state.nextLureId++,name,colors:[]});document.getElementById('new-lure-name').value='';save();renderManageTab();}
+function deleteLure(id){if(!confirm('このルアーを削除しますか？'))return;state.lures=state.lures.filter(l=>l.id!==id);save();renderManageTab();}
+function addColor(lureId){
+  const ne=document.getElementById('color-name-'+lureId);const he=document.getElementById('color-hex-'+lureId);
+  const name=ne.value.trim();if(!name)return;
+  const lure=state.lures.find(l=>l.id===lureId);
+  const nid=lure.colors.length?Math.max(...lure.colors.map(c=>c.id))+1:1;
+  lure.colors.push({id:nid,name,hex:he.value});ne.value='';save();renderManageTab();
+}
+function deleteColor(lureId,colorId){const lure=state.lures.find(l=>l.id===lureId);lure.colors=lure.colors.filter(c=>c.id!==colorId);save();renderManageTab();}
+function updateColorName(lureId,colorId,val){const lure=state.lures.find(l=>l.id===lureId);const color=lure&&lure.colors.find(c=>c.id===colorId);if(color){color.name=val;save();}}
+function updateColorHex(lureId,colorId,val){const lure=state.lures.find(l=>l.id===lureId);const color=lure&&lure.colors.find(c=>c.id===colorId);if(color){color.hex=val;save();}}
+function renderManageTab(){
+  document.getElementById('manage-lure-list').innerHTML=state.lures.map(lure=>`
+    <div class="card">
+      <div class="lure-header">
+        <span class="lure-name">${esc(lure.name)}</span>
+        <button class="btn btn-danger btn-sm" onclick="deleteLure(${lure.id})">削除</button>
+      </div>
+      <div>
+        ${lure.colors.map(c=>`<div class="mc-row">
+          <input type="color" value="${c.hex}" oninput="updateColorHex(${lure.id},${c.id},this.value)" onchange="updateColorHex(${lure.id},${c.id},this.value)" />
+          <input type="text" value="${esc(c.name)}" oninput="updateColorName(${lure.id},${c.id},this.value)" placeholder="カラー名" />
+          <button class="btn btn-danger btn-xs" onclick="deleteColor(${lure.id},${c.id})">削除</button>
+        </div>`).join('')}
+        ${!lure.colors.length?'<p style="font-size:12px;color:#bbb;padding:4px 0">カラーがありません</p>':''}
+      </div>
+      <div class="ac-row">
+        <input type="color" id="color-hex-${lure.id}" value="#3399ff" />
+        <input type="text" id="color-name-${lure.id}" placeholder="新しいカラー名" />
+        <button class="btn btn-sm" onclick="addColor(${lure.id})">+ 追加</button>
+      </div>
+    </div>`).join('');
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function todayStr(){const n=new Date();const p=v=>String(v).padStart(2,'0');return`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;}
+
+load();
+document.getElementById('s-date').value=todayStr();
+renderTackleGrid();
+renderManageTab();
+renderSessionList();
+</script>
+</body>
+</html>
