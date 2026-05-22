@@ -766,17 +766,46 @@ function tPlayNotify(type){
 function tPlayAlarm(isEnd){
   try{
     tInitAudio();if(!tAudioCtx)return;
-    const notes=isEnd?[523,659,784,1047,1047]:[659,784,659];
-    let t=tAudioCtx.currentTime+0.05;
-    notes.forEach(freq=>{
-      const osc=tAudioCtx.createOscillator(),gain=tAudioCtx.createGain();
-      osc.connect(gain);gain.connect(tAudioCtx.destination);
-      osc.frequency.value=freq;osc.type='square';
-      gain.gain.setValueAtTime(0.8,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.4);
-      osc.start(t);osc.stop(t+0.4);t+=isEnd?0.3:0.25;
-    });
+    const t=tAudioCtx.currentTime+0.05;
+    if(isEnd){
+      // バスケブザー：低めのノコギリ波で「ビーーー！」2.5秒
+      const osc=tAudioCtx.createOscillator();
+      const gain=tAudioCtx.createGain();
+      // 歪み（ディストーション）でブザーっぽさを強調
+      const dist=tAudioCtx.createWaveShaper();
+      const curve=new Float32Array(256);
+      for(let i=0;i<256;i++){const x=i*2/256-1;curve[i]=x<0?-1:1;}
+      dist.curve=curve;
+      osc.connect(dist);dist.connect(gain);gain.connect(tAudioCtx.destination);
+      osc.frequency.value=180;osc.type='sawtooth';
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(0.9,t+0.05);
+      gain.gain.setValueAtTime(0.9,t+2.2);
+      gain.gain.linearRampToValueAtTime(0,t+2.5);
+      osc.start(t);osc.stop(t+2.5);
+      // 高音を重ねてブザー感アップ
+      const osc2=tAudioCtx.createOscillator();
+      const gain2=tAudioCtx.createGain();
+      osc2.connect(gain2);gain2.connect(tAudioCtx.destination);
+      osc2.frequency.value=360;osc2.type='square';
+      gain2.gain.setValueAtTime(0,t);
+      gain2.gain.linearRampToValueAtTime(0.4,t+0.05);
+      gain2.gain.setValueAtTime(0.4,t+2.2);
+      gain2.gain.linearRampToValueAtTime(0,t+2.5);
+      osc2.start(t);osc2.stop(t+2.5);
+    } else {
+      // ローテ終了：短いビープ3回
+      const notes=[659,784,659];let bt=t;
+      notes.forEach(freq=>{
+        const osc=tAudioCtx.createOscillator(),gain=tAudioCtx.createGain();
+        osc.connect(gain);gain.connect(tAudioCtx.destination);
+        osc.frequency.value=freq;osc.type='square';
+        gain.gain.setValueAtTime(0.7,bt);gain.gain.exponentialRampToValueAtTime(0.001,bt+0.25);
+        osc.start(bt);osc.stop(bt+0.25);bt+=0.2;
+      });
+    }
   }catch(e){}
-  try{if(navigator.vibrate){navigator.vibrate(isEnd?[200,100,200,100,400]:[150,80,150]);}}catch(e){}
+  try{if(navigator.vibrate){navigator.vibrate(isEnd?[600,50,600]:[150,80,150]);}}catch(e){}
 }
 function tRenderPlayers(){
   const sorted=[...tCounts.map((c,i)=>({i,count:c}))].sort((a,b)=>b.count-a.count);
