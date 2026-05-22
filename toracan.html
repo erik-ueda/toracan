@@ -305,7 +305,10 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
         <div class="stat-card"><div class="stat-label">釣行回数</div><div class="stat-num" id="f-stat-sessions">0</div></div>
         <div class="stat-card"><div class="stat-label">使用ルアー</div><div class="stat-num" id="f-stat-lure-types">0</div></div>
       </div>
-      <div class="slabel">ルアー別釣果ランキング</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:4px">
+        <div class="slabel" style="margin:0">ルアー別釣果ランキング</div>
+        <select id="f-stat-place-filter" onchange="fRenderStats()" style="width:auto;font-size:12px;padding:4px 8px;height:auto">全釣り場</select>
+      </div>
       <div id="f-rank-list"></div>
       <p class="empty" id="f-rank-empty" style="display:none">まだデータがありません。</p>
     </div>
@@ -579,16 +582,60 @@ function fRenderHistory(){
   list.innerHTML=fState.sessions.map(s=>{
     const total=fGetAllTotal(s.id);
     const top=fState.lures.map(l=>({name:l.name,count:fGetLureTotal(s.id,l.id)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count).slice(0,3);
-    return`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div style="font-size:15px;font-weight:700">${esc(s.date)}　${esc(s.place)}</div><div style="font-size:12px;color:var(--gray3);margin-top:2px">${[s.weather,s.airTemp?'気温'+s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"><span class="total-badge">${total} 匹</span><button class="btn btn-xs" onclick="fShowShareScreen(${s.id})">📊 シェア</button></div></div>${s.tackles.length?`<div class="divider"></div><div class="slabel">タックル</div>${s.tackles.map(t=>{const base=fState.tackles.find(b=>b.slot===t.baseSlot);const hasEdit=base&&TACKLE_FIELDS.some(f=>f.key!=='name'&&t[f.key]!==(base[f.key]||''));return`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;margin-bottom:4px;color:#666;display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--black);color:var(--white);font-size:10px">${t.slot}</span>${esc(t.name||'セット'+t.slot)}${hasEdit?'<span style="font-size:10px;color:#d97706;border:1px solid #fcd34d;padding:1px 6px;border-radius:999px">カスタム</span>':''}</div><div class="hist-tackle">${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>{const bv=base?base[f.key]||'':'';const changed=t[f.key]!==bv&&bv!=='';return`<div class="hist-trow"><span class="hist-key">${f.label}</span><span class="hist-val${changed?' changed':''}">${esc(t[f.key])}</span></div>`;}).join('')}</div></div>`;}).join('')}`:''}${top.length?`<div class="divider"></div><div class="slabel">釣果上位ルアー</div><div style="display:flex;flex-wrap:wrap;gap:5px">${top.map((l,i)=>`<span class="badge">${i+1}. ${esc(l.name)} ${l.count}匹</span>`).join('')}</div>`:''}${s.memo?`<div class="divider"></div><div style="font-size:13px;color:#666">${esc(s.memo)}</div>`:''}</div>`;
+    if(s._editing){return`<div class="card">
+      <div class="slabel" style="margin-top:0">釣行を編集</div>
+      <div class="fgrid"><input type="date" id="fhe-date-${s.id}" value="${esc(s.date)}"/><input type="text" id="fhe-place-${s.id}" value="${esc(s.place)}" placeholder="釣り場"/></div>
+      <div class="fgrid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
+        <select id="fhe-weather-${s.id}"><option value="">天気</option>${['☀️ 晴れ','⛅ 曇り','🌧 雨','❄️ 雪'].map(w=>`<option${s.weather===w?' selected':''}>${w}</option>`).join('')}</select>
+        <input type="text" id="fhe-airtemp-${s.id}" value="${esc(s.airTemp||'')}" placeholder="気温（℃）"/>
+        <input type="text" id="fhe-watertemp-${s.id}" value="${esc(s.waterTemp||'')}" placeholder="水温（℃）"/>
+      </div>
+      <textarea id="fhe-memo-${s.id}" placeholder="メモ" style="margin:6px 0">${esc(s.memo||'')}</textarea>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="fSaveHistEdit(${s.id})">保存</button>
+        <button class="btn btn-sm" onclick="fCancelHistEdit(${s.id})">キャンセル</button>
+      </div>
+    </div>`;}
+    return`<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div style="font-size:15px;font-weight:700">${esc(s.date)}　${esc(s.place)}</div><div style="font-size:12px;color:var(--gray3);margin-top:2px">${[s.weather,s.airTemp?'気温'+s.airTemp+'℃':'',s.waterTemp?'水温'+s.waterTemp+'℃':''].filter(Boolean).map(esc).join('　')}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"><span class="total-badge">${total} 匹</span><div style="display:flex;gap:4px"><button class="btn btn-xs" onclick="fShowShareScreen(${s.id})">📊</button><button class="btn btn-xs" onclick="fStartHistEdit(${s.id})">編集</button><button class="btn btn-xs btn-danger" onclick="fDeleteSession(${s.id})">削除</button></div></div></div>${s.tackles.length?`<div class="divider"></div><div class="slabel">タックル</div>${s.tackles.map(t=>{const base=fState.tackles.find(b=>b.slot===t.baseSlot);const hasEdit=base&&TACKLE_FIELDS.some(f=>f.key!=='name'&&t[f.key]!==(base[f.key]||''));return`<div style="margin-bottom:8px"><div style="font-size:12px;font-weight:700;margin-bottom:4px;color:#666;display:flex;align-items:center;gap:6px"><span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--black);color:var(--white);font-size:10px">${t.slot}</span>${esc(t.name||'セット'+t.slot)}${hasEdit?'<span style="font-size:10px;color:#d97706;border:1px solid #fcd34d;padding:1px 6px;border-radius:999px">カスタム</span>':''}</div><div class="hist-tackle">${TACKLE_FIELDS.filter(f=>f.key!=='name'&&t[f.key]).map(f=>{const bv=base?base[f.key]||'':'';const changed=t[f.key]!==bv&&bv!=='';return`<div class="hist-trow"><span class="hist-key">${f.label}</span><span class="hist-val${changed?' changed':''}">${esc(t[f.key])}</span></div>`;}).join('')}</div></div>`;}).join('')}`:''}${top.length?`<div class="divider"></div><div class="slabel">釣果上位ルアー</div><div style="display:flex;flex-wrap:wrap;gap:5px">${top.map((l,i)=>`<span class="badge">${i+1}. ${esc(l.name)} ${l.count}匹</span>`).join('')}</div>`:''}${s.memo?`<div class="divider"></div><div style="font-size:13px;color:#666">${esc(s.memo)}</div>`:''}</div>`;
   }).join('');
 }
+function fStartHistEdit(id){const s=fState.sessions.find(s=>s.id===id);if(s){s._editing=true;fRenderHistory();}}
+function fCancelHistEdit(id){const s=fState.sessions.find(s=>s.id===id);if(s){delete s._editing;fRenderHistory();}}
+function fSaveHistEdit(id){
+  const s=fState.sessions.find(s=>s.id===id);if(!s)return;
+  s.date=document.getElementById('fhe-date-'+id).value;
+  s.place=document.getElementById('fhe-place-'+id).value.trim();
+  s.weather=document.getElementById('fhe-weather-'+id).value;
+  s.airTemp=document.getElementById('fhe-airtemp-'+id).value.trim();
+  s.waterTemp=document.getElementById('fhe-watertemp-'+id).value.trim();
+  s.memo=document.getElementById('fhe-memo-'+id).value.trim();
+  delete s._editing;fSave();fRenderHistory();fRenderSessionList();
+}
+function fDeleteSession(id){
+  const s=fState.sessions.find(s=>s.id===id);if(!s)return;
+  if(!confirm(`この釣行を削除しますか？\n${s.date}　${s.place}\n\nこの操作は元に戻せません。`))return;
+  fState.sessions=fState.sessions.filter(s=>s.id!==id);
+  if(fState.activeSessionId===id)fState.activeSessionId=null;
+  fSave();fRenderHistory();fRenderSessionList();
+}
 function fRenderStats(){
-  const total=fState.sessions.reduce((a,s)=>a+fGetAllTotal(s.id),0);
-  document.getElementById('f-stat-total').textContent=total;
-  document.getElementById('f-stat-sessions').textContent=fState.sessions.length;
-  const used=new Set();fState.sessions.forEach(s=>Object.entries(s.counts).forEach(([k,v])=>{if(v>0)used.add(k.split('_')[0]);}));
+  // 釣り場リストを更新
+  const places=[...new Set(fState.sessions.map(s=>s.place).filter(Boolean))].sort();
+  const sel=document.getElementById('f-stat-place-filter');
+  const curVal=sel.value;
+  sel.innerHTML='<option value="">全釣り場</option>'+places.map(p=>`<option value="${esc(p)}"${curVal===p?' selected':''}>${esc(p)}</option>`).join('');
+
+  // フィルター適用
+  const filterPlace=sel.value;
+  const targetSessions=filterPlace?fState.sessions.filter(s=>s.place===filterPlace):fState.sessions;
+
+  const total=targetSessions.reduce((a,s)=>a+fGetAllTotal(s.id),0);
+  document.getElementById('f-stat-total').textContent=filterPlace?total:fState.sessions.reduce((a,s)=>a+fGetAllTotal(s.id),0);
+  document.getElementById('f-stat-sessions').textContent=filterPlace?targetSessions.length:fState.sessions.length;
+  const used=new Set();targetSessions.forEach(s=>Object.entries(s.counts).forEach(([k,v])=>{if(v>0)used.add(k.split('_')[0]);}));
   document.getElementById('f-stat-lure-types').textContent=used.size;
-  const rd=fState.lures.map(l=>({name:l.name,count:fState.sessions.reduce((a,s)=>a+fGetLureTotal(s.id,l.id),0)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
+
+  const rd=fState.lures.map(l=>({name:l.name,count:targetSessions.reduce((a,s)=>a+fGetLureTotal(s.id,l.id),0)})).filter(x=>x.count>0).sort((a,b)=>b.count-a.count);
   const mx=rd[0]?rd[0].count:1;const rl=document.getElementById('f-rank-list');const re=document.getElementById('f-rank-empty');
   if(!rd.length){rl.innerHTML='';re.style.display='';return;}re.style.display='none';
   rl.innerHTML=rd.map((item,i)=>`<div class="rank-item"><span class="rank-num">${i+1}</span><span class="rank-name">${esc(item.name)}</span><div class="rank-bar-wrap"><div class="rank-bar" style="width:${Math.round(item.count/mx*100)}%"></div></div><span class="rank-cnt">${item.count}</span></div>`).join('');
