@@ -244,6 +244,18 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
       <div class="home-card-desc">選手カウンター<br>タイマー＆ローテ<br>大会記録保存</div>
     </div>
   </div>
+  <div style="padding:0 1rem 1rem">
+    <div style="background:#1a1a1a;border-radius:12px;padding:1rem 1.2rem">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">推奨環境</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <span style="font-size:12px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:4px 10px;border-radius:999px">Safari</span>
+        <span style="font-size:12px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:4px 10px;border-radius:999px">Chrome</span>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.6">
+        ⚠️ 本アプリは現在テスト運用中です。<br>動作の完全な保証はできかねます。<br>特にアラーム音声はブラウザの仕様により鳴らない場合があります。
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 釣果記録 -->
@@ -674,7 +686,13 @@ function tStart(){
   document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';
 }
 function tToggleTimer(){if(tTimer.running)tPause();else tPlay();}
-function tPlay(){if(tTimer.remaining<=0)return;tInitAudio();tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);}
+function tPlay(){
+  if(tTimer.remaining<=0)return;
+  tInitAudio();
+  // SafariのspeechSynthesisをユーザー操作のタイミングで初期化
+  try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance('');window.speechSynthesis.speak(u);}}catch(e){}
+  tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);
+}
 function tPause(){tTimer.running=false;clearInterval(tTimer.interval);document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';}
 function tTick(){tTimer.remaining--;tUpdateTimerDisplay();if(tTimer.remaining<=0){clearInterval(tTimer.interval);tTimer.running=false;if(tTimer.rota<tTimer.maxRota)tTriggerRotaEnd();else tTriggerGameEnd();return;}if(tTimer.remaining===300&&tTimer.rotaDuration>310)tPlayNotify("5min");if(tTimer.remaining===60&&tTimer.rotaDuration>70)tPlayNotify("1min");if(tTimer.remaining<=10){tPlayBeep(tTimer.remaining);const el=document.getElementById("t-timer-display");el.style.transform="scale(1.1)";el.style.transition="transform 0.1s";setTimeout(()=>{el.style.transform="scale(1)";},150);}}
 function tUpdateTimerDisplay(){
@@ -711,17 +729,26 @@ function tPlayBeep(remaining){
   tPlayTone(freq,0.12,vol,'square');
   try{if(navigator.vibrate)navigator.vibrate(remaining<=3?80:50);}catch(e){}
 }
+function tSpeak(text){
+  try{
+    if(!window.speechSynthesis)return;
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='ja-JP';u.rate=0.95;u.pitch=1.1;u.volume=1.0;
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
 function tPlayNotify(type){
   try{
     tInitAudio();if(!tAudioCtx)return;
     if(type==='5min'){
-      // 残り5分：ポーン（1音）
       tPlayTone(880,0.3,0.7,'sine');
+      setTimeout(()=>tSpeak('残り5分です'),400);
       try{if(navigator.vibrate)navigator.vibrate([100]);}catch(e){}
     } else if(type==='1min'){
-      // 残り1分：ポポーン（2音）
       tPlayTone(880,0.25,0.8,'sine');
       setTimeout(()=>tPlayTone(1047,0.35,0.8,'sine'),280);
+      setTimeout(()=>tSpeak('残り1分です'),600);
       try{if(navigator.vibrate)navigator.vibrate([100,80,200]);}catch(e){}
     }
   }catch(e){}
