@@ -674,9 +674,9 @@ function tStart(){
   document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';
 }
 function tToggleTimer(){if(tTimer.running)tPause();else tPlay();}
-function tPlay(){if(tTimer.remaining<=0)return;tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);}
+function tPlay(){if(tTimer.remaining<=0)return;tInitAudio();tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);}
 function tPause(){tTimer.running=false;clearInterval(tTimer.interval);document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';}
-function tTick(){tTimer.remaining--;tUpdateTimerDisplay();if(tTimer.remaining<=0){clearInterval(tTimer.interval);tTimer.running=false;if(tTimer.rota<tTimer.maxRota)tTriggerRotaEnd();else tTriggerGameEnd();}}
+function tTick(){tTimer.remaining--;tUpdateTimerDisplay();if(tTimer.remaining<=0){clearInterval(tTimer.interval);tTimer.running=false;if(tTimer.rota<tTimer.maxRota)tTriggerRotaEnd();else tTriggerGameEnd();return;}if(tTimer.remaining===300&&tTimer.rotaDuration>310)tPlayNotify("5min");if(tTimer.remaining===60&&tTimer.rotaDuration>70)tPlayNotify("1min");if(tTimer.remaining<=10){tPlayBeep(tTimer.remaining);const el=document.getElementById("t-timer-display");el.style.transform="scale(1.1)";el.style.transition="transform 0.1s";setTimeout(()=>{el.style.transform="scale(1)";},150);}}
 function tUpdateTimerDisplay(){
   const m=Math.floor(tTimer.remaining/60),s=tTimer.remaining%60;
   const el=document.getElementById('t-timer-display');el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
@@ -690,7 +690,57 @@ function tTriggerRotaEnd(){tPlayAlarm(false);tFlash(3,()=>{tTimer.rota++;tTimer.
 function tTriggerGameEnd(){tPlayAlarm(true);tFlash(5,()=>tShowResult());}
 function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tShowResult();}
 function tFlash(times,cb){let c=0;const iv=setInterval(()=>{document.body.classList.toggle('alarm');c++;if(c>=times*2){clearInterval(iv);document.body.classList.remove('alarm');if(cb)cb();}},300);}
-function tPlayAlarm(isEnd){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();const notes=isEnd?[523,659,784,1047]:[523,659,523];let t=ctx.currentTime;notes.forEach(freq=>{const osc=ctx.createOscillator(),gain=ctx.createGain();osc.connect(gain);gain.connect(ctx.destination);osc.frequency.value=freq;osc.type='sine';gain.gain.setValueAtTime(.3,t);gain.gain.exponentialRampToValueAtTime(.001,t+.3);osc.start(t);osc.stop(t+.3);t+=.25;});}catch(e){}}
+let tAudioCtx=null;
+function tInitAudio(){try{if(!tAudioCtx||tAudioCtx.state==='closed'){tAudioCtx=new(window.AudioContext||window.webkitAudioContext)();}if(tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}}
+function tPlayTone(freq,duration,volume,type){
+  try{
+    tInitAudio();if(!tAudioCtx)return;
+    const osc=tAudioCtx.createOscillator(),gain=tAudioCtx.createGain();
+    osc.connect(gain);gain.connect(tAudioCtx.destination);
+    osc.frequency.value=freq;osc.type=type||'square';
+    const t=tAudioCtx.currentTime+0.02;
+    gain.gain.setValueAtTime(volume||0.7,t);
+    gain.gain.exponentialRampToValueAtTime(0.001,t+duration);
+    osc.start(t);osc.stop(t+duration);
+  }catch(e){}
+}
+function tPlayBeep(remaining){
+  // 残り3秒以下は高音・大きめ、それ以外は普通
+  const freq=remaining<=3?1400:880;
+  const vol=remaining<=3?0.9:0.7;
+  tPlayTone(freq,0.12,vol,'square');
+  try{if(navigator.vibrate)navigator.vibrate(remaining<=3?80:50);}catch(e){}
+}
+function tPlayNotify(type){
+  try{
+    tInitAudio();if(!tAudioCtx)return;
+    if(type==='5min'){
+      // 残り5分：ポーン（1音）
+      tPlayTone(880,0.3,0.7,'sine');
+      try{if(navigator.vibrate)navigator.vibrate([100]);}catch(e){}
+    } else if(type==='1min'){
+      // 残り1分：ポポーン（2音）
+      tPlayTone(880,0.25,0.8,'sine');
+      setTimeout(()=>tPlayTone(1047,0.35,0.8,'sine'),280);
+      try{if(navigator.vibrate)navigator.vibrate([100,80,200]);}catch(e){}
+    }
+  }catch(e){}
+}
+function tPlayAlarm(isEnd){
+  try{
+    tInitAudio();if(!tAudioCtx)return;
+    const notes=isEnd?[523,659,784,1047,1047]:[659,784,659];
+    let t=tAudioCtx.currentTime+0.05;
+    notes.forEach(freq=>{
+      const osc=tAudioCtx.createOscillator(),gain=tAudioCtx.createGain();
+      osc.connect(gain);gain.connect(tAudioCtx.destination);
+      osc.frequency.value=freq;osc.type='square';
+      gain.gain.setValueAtTime(0.8,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+      osc.start(t);osc.stop(t+0.4);t+=isEnd?0.3:0.25;
+    });
+  }catch(e){}
+  try{if(navigator.vibrate){navigator.vibrate(isEnd?[200,100,200,100,400]:[150,80,150]);}}catch(e){}
+}
 function tRenderPlayers(){
   const sorted=[...tCounts.map((c,i)=>({i,count:c}))].sort((a,b)=>b.count-a.count);
   document.getElementById('t-players-grid').innerHTML=tCounts.map((c,i)=>{const rank=sorted.findIndex(s=>s.i===i)+1;const rc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';return`<div class="player-card"><div class="player-rank ${rc}" id="t-pr-${i}">${rank}</div><span class="player-name-t">${esc(tPlayers[i]?.name||'選手'+(i+1))}</span><span class="player-count-t" id="t-pc-${i}">${c}</span><div class="cnt-btns"><button class="cnt-btn-lg" onclick="tAdd(${i})">＋</button><button class="cnt-btn-lg" style="font-size:16px" onclick="tSub(${i})">−</button></div></div>`;}).join('');
