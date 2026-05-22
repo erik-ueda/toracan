@@ -368,28 +368,11 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
   </div>
   <div class="page-content">
     <div class="section active" id="tscreen-setup">
-      <div class="slabel">モードを選択</div>
-      <div class="mode-grid">
-        <div class="mode-card selected" id="tmc-casual" onclick="tSelectMode('casual')">
-          <div class="mode-icon">🎣</div><div class="mode-title">カジュアル</div>
-          <div class="mode-desc">記録なし。気軽に使える練習向け</div>
-        </div>
-        <div class="mode-card" id="tmc-official" onclick="tSelectMode('official')">
-          <div class="mode-icon">🏆</div><div class="mode-title">本格モード</div>
-          <div class="mode-desc">大会名・日時・場所を登録。結果を保存</div>
-        </div>
-      </div>
-      <div id="t-official-fields" style="display:none">
-        <div class="card">
-          <div class="slabel">大会情報</div>
-          <div class="fgrid">
-            <input type="text" id="t-name" placeholder="大会名"/>
-            <input type="text" id="t-place" placeholder="会場・釣り場"/>
-          </div>
-          <div class="fgrid">
-            <input type="date" id="t-date"/>
-            <input type="time" id="t-time"/>
-          </div>
+      <div class="card">
+        <div class="slabel">試合情報（任意）</div>
+        <div class="fgrid">
+          <input type="date" id="t-date"/>
+          <input type="text" id="t-place" placeholder="釣り場・会場名"/>
         </div>
       </div>
       <div class="card">
@@ -663,12 +646,11 @@ function fRenderManageTab(){
 }
 
 // ══ トーナメント ══
-let tMode='casual',tPlayers=[{name:'選手1'},{name:'選手2'}];
+let tPlayers=[{name:'選手1'},{name:'選手2'}];
 let tTimer={total:0,rotaDuration:0,remaining:0,rota:1,maxRota:3,running:false,interval:null};
 let tCounts=[],tHistory=[];
 function tLoadHistory(){try{const d=localStorage.getItem('toracan_t');if(d)tHistory=JSON.parse(d);}catch(e){}}
 function tSaveHistory(){try{localStorage.setItem('toracan_t',JSON.stringify(tHistory));}catch(e){}}
-function tSelectMode(m){tMode=m;document.getElementById('tmc-casual').className='mode-card'+(m==='casual'?' selected':'');document.getElementById('tmc-official').className='mode-card'+(m==='official'?' selected':'');document.getElementById('t-official-fields').style.display=m==='official'?'block':'none';}
 function tRenderPlayerInputs(){document.getElementById('t-player-inputs').innerHTML=tPlayers.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="width:20px;height:20px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span><input type="text" value="${esc(p.name)}" placeholder="選手名" oninput="tPlayers[${i}].name=this.value" style="flex:1"/></div>`).join('');}
 function tAddPlayer(){if(tPlayers.length>=5)return;tPlayers.push({name:'選手'+(tPlayers.length+1)});tRenderPlayerInputs();}
 function tRemovePlayer(){if(tPlayers.length<=2)return;tPlayers.pop();tRenderPlayerInputs();}
@@ -680,35 +662,48 @@ function tStart(){
   const dur=parseInt(document.getElementById('t-duration').value)||30;const maxRota=parseInt(document.getElementById('t-rota').value)||1;
   const rotaSec=Math.floor(dur*60/maxRota);
   tTimer={total:dur*60,rotaDuration:rotaSec,remaining:rotaSec,rota:1,maxRota,running:false,interval:null};
+  const place=document.getElementById('t-place').value.trim();
+  const date=document.getElementById('t-date').value;
+  tTimer._place=place;tTimer._date=date;
   tCounts=tPlayers.map(()=>0);tSwitchScreen('game');
-  document.getElementById('t-game-title').textContent=tMode==='official'?[document.getElementById('t-name').value.trim(),document.getElementById('t-place').value.trim()].filter(Boolean).join('　／　')||'本格モード':'カジュアルモード';
+  document.getElementById('t-game-title').textContent=[date,place].filter(Boolean).join('　')||'トーナメント';
   tRenderPlayers();tUpdateTimerDisplay();
   document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';
 }
 function tToggleTimer(){if(tTimer.running)tPause();else tPlay();}
 let tWakeLock=null;
-async function tAcquireWakeLock(){
+let tNoSleepVideo=null;
+function tStartNoSleep(){
+  // wakeLock API（Chrome/新しいSafari）
+  try{if('wakeLock' in navigator){navigator.wakeLock.request('screen').then(l=>{tWakeLock=l;}).catch(()=>{});}}catch(e){}
+  // 透明動画ループ（iPhoneのSafari対策）
   try{
-    if('wakeLock' in navigator){
-      tWakeLock=await navigator.wakeLock.request('screen');
+    if(!tNoSleepVideo){
+      const v=document.createElement('video');
+      v.setAttribute('playsinline','');v.setAttribute('muted','');v.loop=true;
+      // 1x1の最小MP4をbase64で埋め込み
+      v.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAAhmcmVlAAAAG21kYXQAAAGzABAHAAABthADAowdbb9/AAAC6W1vb3YAAABsbXZoZAAAAAAAAAAAAAAAAAAAA+gAAAPoAAEAAAEAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAIVdHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAQAAAAAAAAPoAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAIAAAACAAAAAABsW1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAA6AAAADgAVcQAAAAAADVoZGxyAAAAAAAAAAB2aWRlAAAAAAAAAAAAAAAAVmlkZW9IYW5kbGVyAAAAARhtaW5mAAAAFHZtaGQAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEYc3RibAAAALRzdHNkAAAAAAAAAAEAAACkYXZjMQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAIAAAgASABIAABIAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY//8AAAAyYXZjQwFNQCj/4QAZZ01AKOyBQHAAAAMAEAAAAwDIPEiWWAEABmjr48siwAAAABhzdHRzAAAAAAAAAAEAAAAOAAAEAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAAOAAAAAQAAAFRzdHN6AAAAAAAAAAAAAAAOAAAAaAAAABMAAAATAAAAEwAAABMAAAATAAAAEwAAABMAAAATAAAAEwAAABMAAAATAAAAEwAAABMAAAAUc3RjbwAAAAAAAAABAAAAMAAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguNDUuMTAw';
+      v.style.cssText='position:fixed;width:1px;height:1px;top:0;left:0;opacity:0.01;pointer-events:none;z-index:-1;';
+      document.body.appendChild(v);tNoSleepVideo=v;
     }
+    tNoSleepVideo.play().catch(()=>{});
   }catch(e){}
 }
-function tReleaseWakeLock(){
+function tStopNoSleep(){
   try{if(tWakeLock){tWakeLock.release();tWakeLock=null;}}catch(e){}
+  try{if(tNoSleepVideo){tNoSleepVideo.pause();}}catch(e){}
 }
-// ページ復帰時に再取得
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&tTimer.running)tAcquireWakeLock();
+  if(document.visibilityState==='visible'&&tTimer.running)tStartNoSleep();
 });
 function tPlay(){
   if(tTimer.remaining<=0)return;
   tInitAudio();
-  tAcquireWakeLock();
+  tStartNoSleep();
   try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance('');window.speechSynthesis.speak(u);}}catch(e){}
   tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);
 }
-function tPause(){tTimer.running=false;clearInterval(tTimer.interval);tReleaseWakeLock();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';}
+function tPause(){tTimer.running=false;clearInterval(tTimer.interval);tStopNoSleep();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';}
 function tTick(){tTimer.remaining--;tUpdateTimerDisplay();if(tTimer.remaining<=0){clearInterval(tTimer.interval);tTimer.running=false;if(tTimer.rota<tTimer.maxRota)tTriggerRotaEnd();else tTriggerGameEnd();return;}if(tTimer.remaining===300&&tTimer.rotaDuration>310)tPlayNotify("5min");if(tTimer.remaining===60&&tTimer.rotaDuration>70)tPlayNotify("1min");if(tTimer.remaining<=10){tPlayBeep(tTimer.remaining);const el=document.getElementById("t-timer-display");el.style.transform="scale(1.1)";el.style.transition="transform 0.1s";setTimeout(()=>{el.style.transform="scale(1)";},150);}}
 function tUpdateTimerDisplay(){
   const m=Math.floor(tTimer.remaining/60),s=tTimer.remaining%60;
@@ -721,7 +716,7 @@ function tNextRota(){if(tTimer.rota>=tTimer.maxRota){tTriggerGameEnd();return;}c
 function tResetRota(){clearInterval(tTimer.interval);tTimer.running=false;tTimer.remaining=tTimer.rotaDuration;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
 function tTriggerRotaEnd(){tPlayAlarm(false);tFlash(3,()=>{tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tUpdateTimerDisplay();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';alert(`ローテーション ${tTimer.rota-1} 終了！\n次のローテ（${tTimer.rota}/${tTimer.maxRota}）の準備をしてください。`);});}
 function tTriggerGameEnd(){tPlayAlarm(true);tFlash(5,()=>tShowResult());}
-function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tReleaseWakeLock();tShowResult();}
+function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tStopNoSleep();tShowResult();}
 function tFlash(times,cb){let c=0;const iv=setInterval(()=>{document.body.classList.toggle('alarm');c++;if(c>=times*2){clearInterval(iv);document.body.classList.remove('alarm');if(cb)cb();}},300);}
 let tAudioCtx=null;
 function tInitAudio(){try{if(!tAudioCtx||tAudioCtx.state==='closed'){tAudioCtx=new(window.AudioContext||window.webkitAudioContext)();}if(tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}}
@@ -793,17 +788,25 @@ function tRerank(){const sorted=[...tCounts.map((c,i)=>({i,count:c}))].sort((a,b
 function tShowResult(){
   tSwitchScreen('result');const results=tCounts.map((c,i)=>({name:tPlayers[i]?.name||'選手'+(i+1),count:c})).sort((a,b)=>b.count-a.count);
   const medals=['🥇','🥈','🥉','4位','5位'];
-  document.getElementById('t-result-sub').textContent=tMode==='official'?[document.getElementById('t-name').value,document.getElementById('t-place').value].filter(Boolean).join('　'):'カジュアルモード';
+  const place=tTimer._place||'';const date=tTimer._date||'';
+  document.getElementById('t-result-sub').textContent=[date,place].filter(Boolean).join('　')||'';
   document.getElementById('t-result-podium').innerHTML=results.map((r,i)=>`<div class="result-row" style="${i===0?'border-color:#fbbf24;border-width:2px':''}"><span class="result-rank">${medals[i]||i+1+'位'}</span><span class="result-name">${esc(r.name)}</span><span class="result-fish">${r.count} 匹</span></div>`).join('');
-  if(tMode==='official'){tHistory.unshift({id:Date.now(),tournamentName:document.getElementById('t-name').value.trim(),place:document.getElementById('t-place').value.trim(),date:document.getElementById('t-date').value,time:document.getElementById('t-time').value,duration:Math.floor(tTimer.total/60),rota:tTimer.maxRota,results});tSaveHistory();}
+  // 常に保存
+  tHistory.unshift({id:Date.now(),place,date,duration:Math.floor(tTimer.total/60),rota:tTimer.maxRota,results});
+  tSaveHistory();
 }
 function tShowHistory(){
   tSwitchScreen('history');const list=document.getElementById('t-history-list');const empty=document.getElementById('t-history-empty');
   if(!tHistory.length){list.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   const medals=['🥇','🥈','🥉'];
-  list.innerHTML=tHistory.map(r=>`<div class="hist-card"><div class="hist-header-t"><span class="hist-title-t">${esc(r.tournamentName||'大会')}</span><span class="hist-meta-t">${r.date||''}${r.time?' '+r.time:''}</span></div><div style="font-size:12px;color:var(--gray3);margin-bottom:6px">${[r.place,r.duration?r.duration+'分':'',r.rota?r.rota+'ローテ':''].filter(Boolean).join('　／　')}</div><div class="hist-players-t">${r.results.map((p,i)=>`<span class="hist-player-t">${medals[i]||''} ${esc(p.name)} ${p.count}匹</span>`).join('')}</div></div>`).join('');
+  list.innerHTML=tHistory.map(r=>`<div class="hist-card"><div class="hist-header-t"><span class="hist-title-t">${esc(r.place||'試合')}</span><span class="hist-meta-t">${r.date||''}</span></div><div style="font-size:12px;color:var(--gray3);margin-bottom:6px">${[r.duration?r.duration+'分':'',r.rota?r.rota+'ローテ':''].filter(Boolean).join('　／　')}</div><div class="hist-players-t">${r.results.map((p,i)=>`<span class="hist-player-t">${medals[i]||''} ${esc(p.name)} ${p.count}匹</span>`).join('')}</div><div style="margin-top:8px"><button class="btn btn-xs btn-danger" onclick="tDeleteHistory('${r.id}')">削除</button></div></div>`).join('');
 }
-function tGoSetup(){clearInterval(tTimer.interval);tTimer.running=false;tReleaseWakeLock();document.body.classList.remove('alarm');tSwitchScreen('setup');}
+function tDeleteHistory(id){
+  if(!confirm('この記録を削除しますか？'))return;
+  tHistory=tHistory.filter(r=>String(r.id)!==String(id));
+  tSaveHistory();tShowHistory();
+}
+function tGoSetup(){clearInterval(tTimer.interval);tTimer.running=false;tStopNoSleep();document.body.classList.remove('alarm');tSwitchScreen('setup');}
 function tSwitchScreen(s){['setup','game','result','history'].forEach(id=>document.getElementById('tscreen-'+id).className='section'+(id===s?' active':''));}
 
 // ══ ユーティリティ ══
@@ -817,7 +820,7 @@ fRenderTackleGrid();fRenderManageTab();fRenderSessionList();
 tRenderPlayerInputs();tUpdateRotaPreview();
 const _n=new Date(),_p=v=>String(v).padStart(2,'0');
 document.getElementById('t-date').value=`${_n.getFullYear()}-${_p(_n.getMonth()+1)}-${_p(_n.getDate())}`;
-document.getElementById('t-time').value=`${_p(_n.getHours())}:${_p(_n.getMinutes())}`;
+
 </script>
 </body>
 </html>
