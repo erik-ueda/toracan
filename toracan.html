@@ -916,7 +916,49 @@ function tShowHistory(){
   tSwitchScreen('history');const list=document.getElementById('t-history-list');const empty=document.getElementById('t-history-empty');
   if(!tHistory.length){list.innerHTML='';empty.style.display='';return;}empty.style.display='none';
   const medals=['🥇','🥈','🥉'];
-  list.innerHTML=tHistory.map(r=>`<div class="hist-card"><div class="hist-header-t"><span class="hist-title-t">${esc(r.place||'試合')}</span><span class="hist-meta-t">${r.date||''}</span></div><div style="font-size:12px;color:var(--gray3);margin-bottom:6px">${[r.duration?r.duration+'分':'',r.rota?r.rota+'ローテ':''].filter(Boolean).join('　／　')}</div><div class="hist-players-t">${r.results.map((p,i)=>`<span class="hist-player-t">${medals[i]||''} ${esc(p.name)} ${p.count}匹</span>`).join('')}</div><div style="margin-top:8px"><button class="btn btn-xs btn-danger" onclick="tDeleteHistory('${r.id}')">削除</button></div></div>`).join('');
+  list.innerHTML=tHistory.map(r=>{
+    if(r._editing){return`<div class="hist-card">
+      <div class="slabel" style="margin-top:0">履歴を編集</div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:11px;color:var(--gray3);margin-bottom:3px">釣り場・会場名</div>
+        <input type="text" id="the-place-${r.id}" value="${esc(r.place||'')}" placeholder="釣り場・会場名"/>
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:11px;color:var(--gray3);margin-bottom:3px">日付</div>
+        <input type="date" id="the-date-${r.id}" value="${esc(r.date||'')}"/>
+      </div>
+      <div class="slabel">選手名</div>
+      ${r.results.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:16px;width:24px">${medals[i]||''}</span>
+        <input type="text" id="the-player-${r.id}-${i}" value="${esc(p.name)}" placeholder="選手名" style="flex:1"/>
+        <span style="font-size:13px;font-weight:700;color:var(--gray3);white-space:nowrap">${p.count}匹</span>
+      </div>`).join('')}
+      <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="tSaveHistEdit('${r.id}')">保存</button>
+        <button class="btn btn-sm" onclick="tCancelHistEdit('${r.id}')">キャンセル</button>
+      </div>
+    </div>`;}
+    return`<div class="hist-card">
+      <div class="hist-header-t"><span class="hist-title-t">${esc(r.place||'試合')}</span><span class="hist-meta-t">${r.date||''}</span></div>
+      <div style="font-size:12px;color:var(--gray3);margin-bottom:6px">${[r.duration?r.duration+'分':'',r.rota?r.rota+'ローテ':''].filter(Boolean).join('　／　')}</div>
+      <div class="hist-players-t">${r.results.map((p,i)=>`<span class="hist-player-t">${medals[i]||''} ${esc(p.name)} ${p.count}匹</span>`).join('')}</div>
+      <div style="margin-top:8px;display:flex;gap:6px">
+        <button class="btn btn-xs" onclick="tStartHistEdit('${r.id}')">編集</button>
+        <button class="btn btn-xs btn-danger" onclick="tDeleteHistory('${r.id}')">削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function tStartHistEdit(id){const r=tHistory.find(r=>String(r.id)===String(id));if(r){r._editing=true;tShowHistory();}}
+function tCancelHistEdit(id){const r=tHistory.find(r=>String(r.id)===String(id));if(r){delete r._editing;tShowHistory();}}
+function tSaveHistEdit(id){
+  const r=tHistory.find(r=>String(r.id)===String(id));if(!r)return;
+  const placeEl=document.getElementById('the-place-'+id);
+  const dateEl=document.getElementById('the-date-'+id);
+  if(placeEl)r.place=placeEl.value.trim();
+  if(dateEl)r.date=dateEl.value;
+  r.results.forEach((p,i)=>{const el=document.getElementById('the-player-'+id+'-'+i);if(el)p.name=el.value.trim()||p.name;});
+  delete r._editing;tSaveHistory();tShowHistory();
 }
 function tDeleteHistory(id){
   if(!confirm('この記録を削除しますか？'))return;
