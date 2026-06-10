@@ -271,16 +271,49 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
       <div class="home-card-desc">ボタンを押すだけ。ただ数を数えたいときに</div>
     </div>
   </div>
-  <div style="padding:0 1rem 1rem">
+  <div style="padding:0 1rem 1rem;display:flex;flex-direction:column;gap:10px">
     <div style="background:#1a1a1a;border-radius:12px;padding:1rem 1.2rem">
       <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">推奨環境</div>
       <div style="display:flex;gap:8px;margin-bottom:10px">
         <span style="font-size:12px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:4px 10px;border-radius:999px">Safari</span>
         <span style="font-size:12px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);padding:4px 10px;border-radius:999px">Chrome</span>
       </div>
-      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.6">
-        ⚠️ 本アプリは現在テスト運用中です。<br>動作の完全な保証はできかねます。<br>特にアラーム音声はブラウザの仕様により鳴らない場合があります。
+      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.8">
+        ⚠️ 本アプリは現在テスト運用中です。動作の完全な保証はできかねます。<br>
+        ⚠️ アラーム音声はブラウザの仕様により鳴らない場合があります。<br>
+        ⚠️ データはお使いの端末内にのみ保存されます。ブラウザのデータ消去やアプリの再インストールにより<b style="color:rgba(255,255,255,.6)">記録が失われる場合があります。</b><br>
+        💾 大切なデータは定期的に下のバックアップボタンで保存してください。
       </div>
+    </div>
+    <button onclick="showPage('backup')" class="btn btn-primary" style="width:100%;padding:12px;font-size:14px">💾 バックアップ・復元</button>
+  </div>
+</div>
+
+<!-- バックアップ -->
+<div class="page" id="page-backup">
+  <div class="page-header">
+    <button class="page-header-back" onclick="showPage('home')">← ホーム</button>
+    <div class="page-header-title">💾 バックアップ・復元</div>
+  </div>
+  <div class="page-content">
+    <div class="card">
+      <div class="card-title">💾 バックアップ（書き出し）</div>
+      <div style="font-size:13px;color:var(--gray3);line-height:1.7;margin-bottom:12px">
+        ボタンを押すとデータが文字列としてコピーされます。<br>
+        LINEのKeepメモやiPhoneのメモアプリに貼り付けて保存してください。<br>
+        ブラウザのデータが消えても、この文字列があれば復元できます。
+      </div>
+      <button onclick="doBackup()" class="btn btn-primary" style="width:100%;padding:12px">📋 データをコピーする</button>
+      <div id="backup-result" style="display:none;margin-top:10px;padding:10px;background:var(--gray);border-radius:8px;font-size:11px;color:var(--gray3);word-break:break-all;line-height:1.5"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📥 復元（読み込み）</div>
+      <div style="font-size:13px;color:var(--gray3);line-height:1.7;margin-bottom:12px">
+        バックアップ時にコピーした文字列を貼り付けて「復元する」を押してください。<br>
+        ⚠️ 現在のデータは上書きされます。
+      </div>
+      <textarea id="restore-input" placeholder="ここにバックアップ文字列を貼り付け" style="min-height:100px;font-size:12px;margin-bottom:8px"></textarea>
+      <button onclick="doRestore()" class="btn btn-outline-red" style="width:100%;padding:12px">📥 復元する</button>
     </div>
   </div>
 </div>
@@ -440,6 +473,22 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
     </div>
     <div id="sc-history-list"></div>
     <p class="empty" id="sc-history-empty">まだ記録がありません。</p>
+  </div>
+  <div id="sc-screen-detail" style="display:none" class="page-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <button class="btn btn-sm" onclick="scShowHistory()">← 戻る</button>
+      <button class="btn btn-xs btn-danger" id="sc-detail-delete">削除</button>
+    </div>
+    <div style="background:var(--black);border-radius:16px;padding:2rem 1.5rem;text-align:center;margin-bottom:12px">
+      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:.5rem" id="sc-detail-date"></div>
+      <div style="font-size:16px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:1.5rem" id="sc-detail-place"></div>
+      <div style="font-size:96px;font-weight:900;color:var(--white);line-height:1;font-variant-numeric:tabular-nums" id="sc-detail-count">0</div>
+      <div style="font-size:20px;color:rgba(255,255,255,.4);font-weight:600;margin-top:6px">匹</div>
+    </div>
+    <div class="card" id="sc-detail-memo-card" style="display:none">
+      <div class="slabel" style="margin-top:0">メモ</div>
+      <div style="font-size:14px;line-height:1.7;color:var(--text)" id="sc-detail-memo"></div>
+    </div>
   </div>
 </div>
 
@@ -1082,26 +1131,89 @@ function scShowHistory(){
   document.getElementById('sc-screen-count').style.display='none';
   document.getElementById('sc-screen-save').style.display='none';
   document.getElementById('sc-screen-history').style.display='';
+  document.getElementById('sc-screen-detail').style.display='none';
   const list=document.getElementById('sc-history-list');
   const empty=document.getElementById('sc-history-empty');
   if(!scRecords.length){list.innerHTML='';empty.style.display='';return;}
   empty.style.display='none';
   list.innerHTML=scRecords.map(r=>`
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+    <div class="card" onclick="scShowDetail(${r.id})" style="cursor:pointer;active:background:#fafafa">
+      <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
           <div style="font-size:15px;font-weight:700">${esc(r.date||'--')}${r.place?'　'+esc(r.place):''}</div>
+          ${r.memo?`<div style="font-size:12px;color:var(--gray3);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">${esc(r.memo)}</div>`:''}
         </div>
-        <span class="total-badge">${r.count} 匹</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="total-badge">${r.count} 匹</span>
+          <span style="color:var(--gray3);font-size:18px">›</span>
+        </div>
       </div>
-      ${r.memo?`<div style="font-size:13px;color:var(--gray3);margin-bottom:8px">${esc(r.memo)}</div>`:''}
-      <button class="btn btn-xs btn-danger" onclick="scDeleteRecord(${r.id})">削除</button>
     </div>`).join('');
+}
+function scShowDetail(id){
+  const r=scRecords.find(r=>r.id===id);if(!r)return;
+  document.getElementById('sc-screen-history').style.display='none';
+  document.getElementById('sc-screen-detail').style.display='';
+  document.getElementById('sc-detail-count').textContent=r.count;
+  document.getElementById('sc-detail-date').textContent=r.date||'';
+  document.getElementById('sc-detail-place').textContent=r.place||'';
+  const memoCard=document.getElementById('sc-detail-memo-card');
+  const memoEl=document.getElementById('sc-detail-memo');
+  if(r.memo){memoEl.textContent=r.memo;memoCard.style.display='';}else memoCard.style.display='none';
+  document.getElementById('sc-detail-delete').onclick=()=>scDeleteRecord(id);
 }
 function scDeleteRecord(id){
   if(!confirm('この記録を削除しますか？'))return;
   scRecords=scRecords.filter(r=>r.id!==id);
   scSaveRecords();scShowHistory();
+}
+
+// ══ バックアップ・復元 ══
+function doBackup(){
+  try{
+    const data={
+      version:1,
+      date:new Date().toISOString(),
+      fishing:localStorage.getItem('toracan_f')||'',
+      tournament:localStorage.getItem('toracan_t')||'',
+      counter:localStorage.getItem('toracan_sc')||'',
+    };
+    const str='TORACAN_BACKUP_'+Date.now()+'_'+JSON.stringify(data);
+    // クリップボードにコピー
+    if(navigator.clipboard){
+      navigator.clipboard.writeText(str).then(()=>{
+        document.getElementById('backup-result').style.display='block';
+        document.getElementById('backup-result').textContent='✅ コピーしました！LINEのKeepメモやメモアプリに貼り付けて保存してください。';
+      }).catch(()=>fallbackCopy(str));
+    } else {
+      fallbackCopy(str);
+    }
+  }catch(e){alert('バックアップに失敗しました');}
+}
+function fallbackCopy(str){
+  const el=document.getElementById('backup-result');
+  el.style.display='block';
+  el.textContent=str;
+  // テキストを選択状態に
+  const range=document.createRange();range.selectNode(el);
+  window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+  try{document.execCommand('copy');el.textContent='✅ コピーしました！LINEのKeepメモやメモアプリに貼り付けて保存してください。';}
+  catch(e){el.textContent='上の文字列を長押しして全選択→コピーしてください:\n\n'+str;}
+}
+function doRestore(){
+  const input=document.getElementById('restore-input').value.trim();
+  if(!input){alert('バックアップ文字列を貼り付けてください');return;}
+  if(!input.startsWith('TORACAN_BACKUP_')){alert('正しいバックアップ文字列ではありません');return;}
+  if(!confirm('現在のデータを上書きして復元しますか？\nこの操作は元に戻せません。'))return;
+  try{
+    const jsonStr=input.replace(/^TORACAN_BACKUP_\d+_/,'');
+    const data=JSON.parse(jsonStr);
+    if(data.fishing)localStorage.setItem('toracan_f',data.fishing);
+    if(data.tournament)localStorage.setItem('toracan_t',data.tournament);
+    if(data.counter)localStorage.setItem('toracan_sc',data.counter);
+    alert('✅ 復元しました！ページを再読み込みします。');
+    location.reload();
+  }catch(e){alert('復元に失敗しました。バックアップ文字列が正しいか確認してください。');}
 }
 
 // ══ ユーティリティ ══
