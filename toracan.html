@@ -182,6 +182,12 @@ textarea{resize:vertical;min-height:52px;}
 .share-color-bar-wrap{width:80px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;}
 .share-color-bar{height:100%;background:var(--red);border-radius:2px;}
 .share-color-cnt{font-size:12px;font-weight:700;color:rgba(255,255,255,.8);width:24px;text-align:right;}
+.share-timeline-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;padding-top:1rem;border-top:1px solid rgba(255,255,255,.1);}
+.share-tl-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.share-tl-time{font-size:11px;color:rgba(255,255,255,.5);width:60px;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.share-tl-bar-wrap{flex:1;height:14px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.share-tl-bar{height:100%;background:var(--red);border-radius:3px;transition:width .3s;}
+.share-tl-cnt{font-size:12px;font-weight:800;color:rgba(255,255,255,.8);width:28px;text-align:right;}
 
 /* トーナメント */
 .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
@@ -369,6 +375,7 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
     </div>
     <div class="share-time-block" id="share-time-block" style="display:none;margin-bottom:1.2rem;"></div>
     <div class="share-lure-list" id="share-lure-list"></div>
+    <div id="share-timeline" style="display:none;margin-top:1rem"></div>
     <div class="share-tackle-section" id="share-tackle-section"></div>
   </div>
   <div style="padding:1rem;display:flex;gap:8px;flex-wrap:wrap">
@@ -383,29 +390,56 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
     <button class="page-header-back" onclick="showPage('home')">← ホーム</button>
     <div class="page-header-title">🔢 シンプルカウンター</div>
   </div>
-  <div class="page-content">
+  <div id="sc-screen-count" class="page-content">
     <div style="background:var(--white);border-radius:var(--radius);padding:1rem;margin-bottom:12px;border:1px solid var(--border)">
       <div style="font-size:13px;color:var(--gray3);line-height:1.7">
         ボタンを押すだけでカウント。<br>
         ルアーを選ばず、釣れたら即タップ。<br>
-        リセットボタンで0に戻せます。
+        記録ボタンで保存できます。
       </div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:1rem 0">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:.8rem 0">
       <div style="font-size:100px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--black);line-height:1" id="sc-count">0</div>
       <div style="font-size:18px;color:var(--gray3);font-weight:600">匹</div>
     </div>
-    <button id="sc-btn"
-      onclick="scAdd()"
-      style="width:100%;height:200px;background:var(--red);border:none;border-radius:20px;font-size:80px;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;-webkit-tap-highlight-color:transparent;box-shadow:0 6px 0 #a01008;active:transform:translateY(2px);"
+    <button id="sc-btn" onclick="scAdd()"
+      style="width:100%;height:200px;background:var(--red);border:none;border-radius:20px;font-size:80px;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;-webkit-tap-highlight-color:transparent;box-shadow:0 6px 0 #a01008;"
       ontouchstart="this.style.boxShadow='0 2px 0 #a01008';this.style.transform='translateY(4px)'"
-      ontouchend="this.style.boxShadow='0 6px 0 #a01008';this.style.transform='translateY(0)'">
-      ＋
-    </button>
+      ontouchend="this.style.boxShadow='0 6px 0 #a01008';this.style.transform='translateY(0)'">＋</button>
     <div style="display:flex;gap:10px;margin-top:12px">
-      <button onclick="scUndo()" class="btn" style="flex:1;padding:14px;font-size:15px">↩ 1つ戻す</button>
-      <button onclick="scReset()" class="btn btn-danger" style="flex:1;padding:14px;font-size:15px">リセット</button>
+      <button onclick="scUndo()" class="btn" style="flex:1;padding:12px;font-size:14px">↩ 1つ戻す</button>
+      <button onclick="scReset()" class="btn btn-danger" style="flex:1;padding:12px;font-size:14px">リセット</button>
     </div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button onclick="scShowSave()" class="btn btn-primary" style="flex:1;padding:12px;font-size:14px">💾 記録する</button>
+      <button onclick="scShowHistory()" class="btn" style="flex:1;padding:12px;font-size:14px">📋 履歴</button>
+    </div>
+  </div>
+  <div id="sc-screen-save" style="display:none" class="page-content">
+    <div class="card">
+      <div style="text-align:center;margin-bottom:1rem">
+        <div style="font-size:64px;font-weight:900;color:var(--black);line-height:1" id="sc-save-count">0</div>
+        <div style="font-size:16px;color:var(--gray3);font-weight:600;margin-top:4px">匹</div>
+      </div>
+      <div class="slabel">情報を入力（任意）</div>
+      <div class="fgrid">
+        <input type="date" id="sc-save-date"/>
+        <input type="text" id="sc-save-place" placeholder="釣り場・場所"/>
+      </div>
+      <textarea id="sc-save-memo" placeholder="メモ（ルアー、天気、感想など自由に）" style="margin-top:7px;min-height:80px"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button onclick="scSave()" class="btn btn-primary" style="flex:1;padding:12px">保存する</button>
+        <button onclick="scCancelSave()" class="btn" style="flex:1;padding:12px">キャンセル</button>
+      </div>
+    </div>
+  </div>
+  <div id="sc-screen-history" style="display:none" class="page-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:800">📋 記録履歴</div>
+      <button class="btn btn-sm" onclick="scShowCount()">← 戻る</button>
+    </div>
+    <div id="sc-history-list"></div>
+    <p class="empty" id="sc-history-empty">まだ記録がありません。</p>
   </div>
 </div>
 
@@ -614,6 +648,30 @@ function fShowShareScreen(sid){
     </div>`).join(''):'<div style="color:rgba(255,255,255,.3);font-size:13px">ノーフィッシュ</div>';
   // タックル
   document.getElementById('share-tackle-section').style.display='none';
+  // タイムライングラフ
+  const tlEl=document.getElementById('share-timeline');
+  if(s.timeline&&s.timeline.length>0){
+    // 30分刻みのバケツに集計
+    const buckets={};
+    s.timeline.forEach(t=>{
+      const [h,m]=t.split(':').map(Number);
+      const slot=h*2+(m>=30?1:0);
+      const label=(String(h).padStart(2,'0'))+':'+(m>=30?'30':'00');
+      buckets[slot]=(buckets[slot]||{label,count:0});
+      buckets[slot].count++;
+    });
+    const slots=Object.values(buckets).sort((a,b)=>a.label.localeCompare(b.label));
+    const mx=Math.max(...slots.map(s=>s.count));
+    tlEl.innerHTML=`<div class="share-timeline-label">TIME LINE（30分別）</div>`+
+      slots.map(s=>`<div class="share-tl-row">
+        <span class="share-tl-time">${s.label}</span>
+        <div class="share-tl-bar-wrap"><div class="share-tl-bar" style="width:${Math.round(s.count/mx*100)}%"></div></div>
+        <span class="share-tl-cnt">${s.count}</span>
+      </div>`).join('');
+    tlEl.style.display='block';
+  } else {
+    tlEl.style.display='none';
+  }
   showPage('share');
 }
 function fRenderCountTab(){
@@ -632,7 +690,23 @@ function fRenderCountTab(){
 function fLureCard(sid,lure,finished){
   return`<div class="card" style="margin-bottom:7px${finished?';opacity:.8':''}"><div class="lure-header"><span class="lure-name">${esc(lure.name)}</span><span class="total-badge" id="f-badge-${sid}-${lure.id}">計 ${fGetLureTotal(sid,lure.id)} 匹</span></div><div class="colors-grid">${lure.colors.length?lure.colors.map(c=>`<div class="color-item"><span class="color-dot" style="background:${c.hex}"></span><span class="color-label">${esc(c.name)}</span>${finished?`<span style="font-size:14px;font-weight:700;min-width:20px;text-align:right;color:#555">${fGetCount(sid,lure.id,c.id)}</span>`:`<div class="count-ctrl"><button class="cnt-btn" onclick="fChangeCount(${sid},${lure.id},${c.id},-1)">−</button><span class="cnt-num" id="f-cnt-${sid}-${lure.id}-${c.id}">${fGetCount(sid,lure.id,c.id)}</span><button class="cnt-btn" onclick="fChangeCount(${sid},${lure.id},${c.id},1)">＋</button></div>`}</div>`).join(''):'<span style="font-size:12px;color:#ccc">カラー未登録</span>'}</div></div>`;
 }
-function fChangeCount(sid,lid,cid,delta){fSetCount(sid,lid,cid,fGetCount(sid,lid,cid)+delta);const el=document.getElementById('f-cnt-'+sid+'-'+lid+'-'+cid);if(el)el.textContent=fGetCount(sid,lid,cid);const badge=document.getElementById('f-badge-'+sid+'-'+lid);if(badge)badge.textContent='計 '+fGetLureTotal(sid,lid)+' 匹';const it=document.getElementById('f-info-total-'+sid);if(it)it.textContent=fGetAllTotal(sid)+' 匹';fSave();}
+function fChangeCount(sid,lid,cid,delta){
+  fSetCount(sid,lid,cid,fGetCount(sid,lid,cid)+delta);
+  const el=document.getElementById('f-cnt-'+sid+'-'+lid+'-'+cid);if(el)el.textContent=fGetCount(sid,lid,cid);
+  const badge=document.getElementById('f-badge-'+sid+'-'+lid);if(badge)badge.textContent='計 '+fGetLureTotal(sid,lid)+' 匹';
+  const it=document.getElementById('f-info-total-'+sid);if(it)it.textContent=fGetAllTotal(sid)+' 匹';
+  // 時刻記録（+のときのみ）
+  if(delta>0){
+    const s=fState.sessions.find(s=>s.id===sid);
+    if(s){
+      if(!s.timeline)s.timeline=[];
+      const now=new Date();
+      const hhmm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+      s.timeline.push(hhmm);
+    }
+  }
+  fSave();
+}
 
 function fRenderHistory(){
   const list=document.getElementById('f-history-list');const empty=document.getElementById('f-history-empty');
@@ -969,17 +1043,73 @@ function tGoSetup(){clearInterval(tTimer.interval);tTimer.running=false;tStopNoS
 function tSwitchScreen(s){['setup','game','result','history'].forEach(id=>document.getElementById('tscreen-'+id).className='section'+(id===s?' active':''));}
 
 // ══ シンプルカウンター ══
-let scCount=0,scHistory=[];
+let scCount=0,scHistory=[],scRecords=[];
+function scLoadRecords(){try{const d=localStorage.getItem('toracan_sc');if(d)scRecords=JSON.parse(d);}catch(e){}}
+function scSaveRecords(){try{localStorage.setItem('toracan_sc',JSON.stringify(scRecords));}catch(e){}}
 function scAdd(){scHistory.push(scCount);scCount++;document.getElementById('sc-count').textContent=scCount;try{if(navigator.vibrate)navigator.vibrate(30);}catch(e){}}
 function scUndo(){if(scHistory.length===0)return;scCount=scHistory.pop();document.getElementById('sc-count').textContent=scCount;}
 function scReset(){if(!confirm('カウントをリセットしますか？'))return;scCount=0;scHistory=[];document.getElementById('sc-count').textContent=0;}
+function scShowCount(){
+  document.getElementById('sc-screen-count').style.display='';
+  document.getElementById('sc-screen-save').style.display='none';
+  document.getElementById('sc-screen-history').style.display='none';
+}
+function scShowSave(){
+  document.getElementById('sc-save-count').textContent=scCount;
+  document.getElementById('sc-save-date').value=fTodayStr();
+  document.getElementById('sc-save-place').value='';
+  document.getElementById('sc-save-memo').value='';
+  document.getElementById('sc-screen-count').style.display='none';
+  document.getElementById('sc-screen-save').style.display='';
+  document.getElementById('sc-screen-history').style.display='none';
+}
+function scCancelSave(){scShowCount();}
+function scSave(){
+  const rec={
+    id:Date.now(),
+    count:scCount,
+    date:document.getElementById('sc-save-date').value,
+    place:document.getElementById('sc-save-place').value.trim(),
+    memo:document.getElementById('sc-save-memo').value.trim(),
+  };
+  scRecords.unshift(rec);scSaveRecords();
+  scCount=0;scHistory=[];
+  document.getElementById('sc-count').textContent=0;
+  scShowCount();
+  alert('記録しました！');
+}
+function scShowHistory(){
+  document.getElementById('sc-screen-count').style.display='none';
+  document.getElementById('sc-screen-save').style.display='none';
+  document.getElementById('sc-screen-history').style.display='';
+  const list=document.getElementById('sc-history-list');
+  const empty=document.getElementById('sc-history-empty');
+  if(!scRecords.length){list.innerHTML='';empty.style.display='';return;}
+  empty.style.display='none';
+  list.innerHTML=scRecords.map(r=>`
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div>
+          <div style="font-size:15px;font-weight:700">${esc(r.date||'--')}${r.place?'　'+esc(r.place):''}</div>
+        </div>
+        <span class="total-badge">${r.count} 匹</span>
+      </div>
+      ${r.memo?`<div style="font-size:13px;color:var(--gray3);margin-bottom:8px">${esc(r.memo)}</div>`:''}
+      <button class="btn btn-xs btn-danger" onclick="scDeleteRecord(${r.id})">削除</button>
+    </div>`).join('');
+}
+function scDeleteRecord(id){
+  if(!confirm('この記録を削除しますか？'))return;
+  scRecords=scRecords.filter(r=>r.id!==id);
+  scSaveRecords();scShowHistory();
+}
 
 // ══ ユーティリティ ══
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function fTodayStr(){const n=new Date();const p=v=>String(v).padStart(2,'0');return`${n.getFullYear()}-${p(n.getMonth()+1)}-${p(n.getDate())}`;}
 
 // ══ 初期化 ══
-fLoad();tLoadHistory();
+fLoad();tLoadHistory();scLoadRecords();
 document.getElementById('f-s-date').value=fTodayStr();
 fRenderManageTab();fRenderSessionList();
 tRenderPlayerInputs();tUpdateRotaPreview();
