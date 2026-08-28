@@ -571,7 +571,31 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
         <button class="btn btn-primary" style="flex:1" onclick="tGoSetup()">新しい試合</button>
         <button class="btn" style="flex:1" onclick="tShowHistory()">履歴を見る</button>
       </div>
-      <button class="btn" style="width:100%;margin-top:8px;padding:12px;font-size:14px" onclick="tShareResult()">📤 結果をシェア</button>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px;padding:12px;font-size:14px" onclick="tShowShareCard()">📊 シェアカードを見る</button>
+    </div>
+    <!-- シェアカード画面 -->
+    <div class="section" id="tscreen-share">
+      <div style="padding:.5rem 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <button class="btn btn-sm" onclick="tSwitchScreen('result')">← 戻る</button>
+          <button class="btn btn-sm" onclick="alert('この画面をスクショしてLINEで送ってね📸')">📸 スクショ用</button>
+        </div>
+        <div id="t-share-card" style="background:var(--black);border-radius:16px;padding:1.5rem 1.2rem">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.2rem">
+            <span style="font-size:18px;font-weight:900;color:var(--red);font-style:italic">トラカン</span>
+            <span style="font-size:11px;color:rgba(255,255,255,.35);margin-left:auto" id="tsc-date"></span>
+          </div>
+          <div style="font-size:20px;font-weight:900;color:var(--white);margin-bottom:.3rem" id="tsc-place"></div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:1.2rem" id="tsc-info"></div>
+          <!-- 選手別ローテ表 -->
+          <div id="tsc-table" style="overflow-x:auto"></div>
+          <!-- 総合順位 -->
+          <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:1rem;margin-top:1rem">
+            <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,.3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">TOTAL</div>
+            <div id="tsc-total"></div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="section" id="tscreen-history">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -858,7 +882,7 @@ function fRenderManageTab(){
 // ══ トーナメント ══
 let tPlayers=[{name:'選手1'},{name:'選手2'}];
 let tTimer={total:0,rotaDuration:0,remaining:0,rota:1,maxRota:3,running:false,interval:null};
-let tCounts=[],tHistory=[];
+let tCounts=[],tHistory=[],tRotaLog=[];
 function tLoadHistory(){try{const d=localStorage.getItem('toracan_t');if(d)tHistory=JSON.parse(d);}catch(e){}}
 function tSaveHistory(){try{localStorage.setItem('toracan_t',JSON.stringify(tHistory));}catch(e){}}
 function tRenderPlayerInputs(){document.getElementById('t-player-inputs').innerHTML=tPlayers.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="width:20px;height:20px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span><input type="text" value="${esc(p.name)}" placeholder="選手名" oninput="tPlayers[${i}].name=this.value" style="flex:1"/></div>`).join('');}
@@ -876,6 +900,7 @@ function tStart(){
   const date=document.getElementById('t-date').value;
   tTimer._place=place;tTimer._date=date;
   tCounts=tPlayers.map(()=>0);
+  tRotaLog=[];
   tSwitchScreen('game');
   document.getElementById('t-game-title').textContent=[date,place].filter(Boolean).join('　')||'トーナメント';
   tRenderPlayers();tUpdateTimerDisplay();
@@ -941,7 +966,7 @@ document.addEventListener('visibilitychange',()=>{
 function tPlay(){
   if(tTimer.remaining<=0)return;
   // 最初のスタート時のみカウントダウン（残り時間が満タンの時）
-  if(tTimer.remaining===tTimer.rotaDuration&&tTimer.rota===1&&!tTimer._started){
+  if(tTimer.remaining===tTimer.rotaDuration&&!tTimer._started){
     tTimer._started=true;
     tStartCountdown(()=>{
       tInitAudio();tStartNoSleep();
@@ -965,11 +990,11 @@ function tUpdateTimerDisplay(){
   const fill=document.getElementById('t-progress-fill');fill.style.width=(ratio*100)+'%';fill.className='progress-fill'+(ratio<=0.1?' danger':ratio<=0.25?' warning':'');
   document.getElementById('t-rota-label').innerHTML=`ローテ <span class="rota-badge">${tTimer.rota} / ${tTimer.maxRota}</span>`;
 }
-function tNextRota(){if(tTimer.rota>=tTimer.maxRota){tTriggerGameEnd();return;}clearInterval(tTimer.interval);tTimer.running=false;tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
-function tResetRota(){clearInterval(tTimer.interval);tTimer.running=false;tTimer.remaining=tTimer.rotaDuration;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
-function tTriggerRotaEnd(){tPlayAlarm(false);tFlash(3,()=>{tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tUpdateTimerDisplay();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';alert(`ローテーション ${tTimer.rota-1} 終了！\n次のローテ（${tTimer.rota}/${tTimer.maxRota}）の準備をしてください。`);});}
-function tTriggerGameEnd(){tPlayAlarm(true);tFlash(5,()=>tShowResult());}
-function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tStopNoSleep();tShowResult();}
+function tNextRota(){if(tTimer.rota>=tTimer.maxRota){tTriggerGameEnd();return;}clearInterval(tTimer.interval);tTimer.running=false;tRotaLog.push([...tCounts]);tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tTimer._started=false;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
+function tResetRota(){clearInterval(tTimer.interval);tTimer.running=false;tTimer.remaining=tTimer.rotaDuration;tTimer._started=false;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
+function tTriggerRotaEnd(){tRotaLog.push([...tCounts]);tPlayAlarm(false);tFlash(3,()=>{tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tUpdateTimerDisplay();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';alert(`ローテーション ${tTimer.rota-1} 終了！\n次のローテ（${tTimer.rota}/${tTimer.maxRota}）の準備をしてください。`);});}
+function tTriggerGameEnd(){tRotaLog.push([...tCounts]);tPlayAlarm(true);tFlash(5,()=>tShowResult());}
+function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tStopNoSleep();tRotaLog.push([...tCounts]);tShowResult();}
 function tFlash(times,cb){let c=0;const iv=setInterval(()=>{document.body.classList.toggle('alarm');c++;if(c>=times*2){clearInterval(iv);document.body.classList.remove('alarm');if(cb)cb();}},300);}
 let tAudioCtx=null;
 function tInitAudio(){try{if(!tAudioCtx||tAudioCtx.state==='closed'){tAudioCtx=new(window.AudioContext||window.webkitAudioContext)();}if(tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}}
@@ -1150,32 +1175,55 @@ function tDeleteHistory(id){
   tHistory=tHistory.filter(r=>String(r.id)!==String(id));
   tSaveHistory();tShowHistory();
 }
-function tShareResult(){
+function tShowShareCard(){
+  tSwitchScreen('share');
   const medals=['🥇','🥈','🥉','4位','5位'];
-  const podium=document.getElementById('t-result-podium');
-  const results=[...podium.querySelectorAll('.result-row')].map((row,i)=>{
-    const name=row.querySelector('.result-name').textContent;
-    const fish=row.querySelector('.result-fish').textContent;
-    return `${medals[i]||i+1+'位'} ${name} ${fish}`;
-  });
   const place=tTimer._place||'';const date=tTimer._date||'';
-  const header=[date,place].filter(Boolean).join('　');
-  const text=`🏆 トーナメント結果\n${header?header+'\n':''}\n${results.join('\n')}\n\n#トラカン #エリアトラウト #管釣り\nhttps://erik-ueda.github.io/toracan/toracan.html`;
-  if(navigator.share){
-    navigator.share({text}).catch(()=>tCopyResult(text));
-  } else {
-    tCopyResult(text);
-  }
-}
-function tCopyResult(text){
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>alert('✅ クリップボードにコピーしました！\nLINEやXに貼り付けてシェアしてください。'));
-  } else {
-    prompt('この内容をコピーしてシェアしてください',text);
-  }
+  document.getElementById('tsc-date').textContent=date;
+  document.getElementById('tsc-place').textContent=place||'トーナメント';
+  document.getElementById('tsc-info').textContent=`${tTimer.maxRota}ローテ　${Math.floor(tTimer.total/60)}分`;
+
+  // ローテ別スナップショットからローテごとの増加数を計算
+  const playerNames=tPlayers.map((p,i)=>p.name||'選手'+(i+1));
+  const rotaCount=tRotaLog.length;
+  // ローテごとの獲得数（前ローテとの差分）
+  const rotaGains=tRotaLog.map((snap,ri)=>{
+    const prev=ri===0?tPlayers.map(()=>0):tRotaLog[ri-1];
+    return snap.map((v,i)=>v-(prev[i]||0));
+  });
+  const totals=tRotaLog.length>0?tRotaLog[tRotaLog.length-1]:[...tCounts];
+
+  // テーブル描画
+  const playerCount=playerNames.length;
+  let tableHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr>
+      <th style="color:rgba(255,255,255,.4);font-size:10px;text-align:left;padding:4px 6px;font-weight:600;white-space:nowrap">選手</th>
+      ${Array.from({length:rotaCount},(_,i)=>`<th style="color:rgba(255,255,255,.4);font-size:10px;text-align:center;padding:4px 6px;font-weight:600;white-space:nowrap">${i+1}R</th>`).join('')}
+      <th style="color:var(--red);font-size:10px;text-align:center;padding:4px 6px;font-weight:700;white-space:nowrap">計</th>
+    </tr></thead>
+    <tbody>
+      ${playerNames.map((name,pi)=>{
+        const total=totals[pi]||0;
+        return`<tr style="border-top:1px solid rgba(255,255,255,.08)">
+          <td style="color:rgba(255,255,255,.8);font-weight:700;padding:8px 6px;white-space:nowrap">${esc(name)}</td>
+          ${rotaGains.map(g=>`<td style="color:rgba(255,255,255,.7);text-align:center;padding:8px 6px;font-variant-numeric:tabular-nums">${g[pi]||0}</td>`).join('')}
+          <td style="color:var(--red);font-weight:900;font-size:16px;text-align:center;padding:8px 6px;font-variant-numeric:tabular-nums">${total}</td>
+        </tr>`;}).join('')}
+    </tbody>
+  </table></div>`;
+  document.getElementById('tsc-table').innerHTML=tableHTML;
+
+  // 総合順位
+  const sorted=playerNames.map((name,i)=>({name,total:totals[i]||0})).sort((a,b)=>b.total-a.total);
+  document.getElementById('tsc-total').innerHTML=sorted.map((p,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <span style="font-size:20px;width:28px">${medals[i]||i+1+'位'}</span>
+      <span style="color:var(--white);font-weight:700;font-size:14px;flex:1">${esc(p.name)}</span>
+      <span style="color:var(--white);font-weight:900;font-size:22px;font-variant-numeric:tabular-nums">${p.total}<span style="font-size:13px;color:rgba(255,255,255,.4);font-weight:400"> 匹</span></span>
+    </div>`).join('');
 }
 function tGoSetup(){clearInterval(tTimer.interval);tTimer.running=false;tStopNoSleep();document.body.classList.remove('alarm');tSwitchScreen('setup');}
-function tSwitchScreen(s){['setup','countdown','game','result','history'].forEach(id=>document.getElementById('tscreen-'+id).className='section'+(id===s?' active':''));}
+function tSwitchScreen(s){['setup','countdown','game','result','history','share'].forEach(id=>document.getElementById('tscreen-'+id).className='section'+(id===s?' active':''));}
 
 // ══ シンプルカウンター ══
 let scCount=0,scHistory=[],scRecords=[];
