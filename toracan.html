@@ -578,7 +578,10 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
       <div style="padding:.5rem 0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <button class="btn btn-sm" onclick="tSwitchScreen('result')">← 戻る</button>
-          <button class="btn btn-sm" onclick="alert('この画面をスクショしてLINEで送ってね📸')">📸 スクショ用</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm" onclick="tSendLine()">📨 LINEで送る</button>
+            <button class="btn btn-sm" onclick="alert('この画面をスクショしてLINEで送ってね📸')">📸 スクショ用</button>
+          </div>
         </div>
         <div id="t-share-card" style="background:var(--black);border-radius:16px;padding:1.5rem 1.2rem">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.2rem">
@@ -911,7 +914,7 @@ function tStartCountdown(cb){
   tSwitchScreen('countdown');
   tInitAudio();
   try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance('');window.speechSynthesis.speak(u);}}catch(e){}
-  let count=10;
+  let count=5;
   const numEl=document.getElementById('t-cd-num');
   const labelEl=document.getElementById('t-cd-label');
   labelEl.textContent='竿を持って準備してください';
@@ -1174,6 +1177,54 @@ function tDeleteHistory(id){
   if(!confirm('この記録を削除しますか？'))return;
   tHistory=tHistory.filter(r=>String(r.id)!==String(id));
   tSaveHistory();tShowHistory();
+}
+function tSendLine(){
+  const medals=['🥇','🥈','🥉','4位','5位'];
+  const place=tTimer._place||'';const date=tTimer._date||'';
+  const playerNames=tPlayers.map((p,i)=>p.name||'選手'+(i+1));
+  const totals=tRotaLog.length>0?tRotaLog[tRotaLog.length-1]:[...tCounts];
+  const rotaCount=tRotaLog.length;
+  const rotaGains=tRotaLog.map((snap,ri)=>{
+    const prev=ri===0?tPlayers.map(()=>0):tRotaLog[ri-1];
+    return snap.map((v,i)=>v-(prev[i]||0));
+  });
+
+  // テキスト表を作成
+  const header=[date,place].filter(Boolean).join('　');
+  const rotaHeaders=Array.from({length:rotaCount},(_,i)=>`${i+1}R`);
+
+  // 列幅を計算
+  const nameWidth=Math.max(4,...playerNames.map(n=>[...n].length));
+  const pad=(s,w)=>{const l=[...String(s)].length;return s+' '.repeat(Math.max(0,w-l));};
+  const cw=3;
+
+  const sep='─'.repeat(nameWidth+2+(cw+1)*rotaCount+cw+2);
+  const headerRow=`${pad('選手',nameWidth)}　${rotaHeaders.map(h=>pad(h,cw)).join(' ')}　計`;
+  const rows=playerNames.map((name,pi)=>{
+    const gains=rotaGains.map(g=>String(g[pi]||0));
+    const total=String(totals[pi]||0);
+    return `${pad(name,nameWidth)}　${gains.map(g=>pad(g,cw)).join(' ')}　${total}`;
+  });
+
+  // 総合順位
+  const sorted=playerNames.map((name,i)=>({name,total:totals[i]||0,idx:i})).sort((a,b)=>b.total-a.total);
+  const rankText=sorted.map((p,i)=>`${medals[i]||i+1+'位'} ${p.name} ${p.total}匹`).join('\n');
+
+  const text=`🏆 トーナメント結果\n${header}\n\n${sep}\n${headerRow}\n${sep}\n${rows.join('\n')}\n${sep}\n\n${rankText}\n\n#トラカン #エリアトラウト`;
+
+  // LINE共有
+  if(navigator.share){
+    navigator.share({text}).catch(()=>tCopyLine(text));
+  } else {
+    tCopyLine(text);
+  }
+}
+function tCopyLine(text){
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>alert('✅ クリップボードにコピーしました！\nLINEに貼り付けて送ってください。'));
+  } else {
+    prompt('この内容をコピーしてLINEに貼り付けてください',text);
+  }
 }
 function tShowShareCard(){
   tSwitchScreen('share');
