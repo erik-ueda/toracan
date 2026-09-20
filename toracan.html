@@ -951,7 +951,6 @@ function tStartNoSleep(){
     if(!tNoSleepVideo){
       const v=document.createElement('video');
       v.setAttribute('playsinline','');v.setAttribute('muted','');v.loop=true;
-      // 1x1の最小MP4をbase64で埋め込み
       v.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAAhmcmVlAAAAG21kYXQAAAGzABAHAAABthADAowdbb9/AAAC6W1vb3YAAABsbXZoZAAAAAAAAAAAAAAAAAAAA+gAAAPoAAEAAAEAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAIVdHJhawAAAFx0a2hkAAAAAwAAAAAAAAAAAAAAAQAAAAAAAAPoAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAQAAAAAAIAAAACAAAAAABsW1kaWEAAAAgbWRoZAAAAAAAAAAAAAAAAAAA6AAAADgAVcQAAAAAADVoZGxyAAAAAAAAAAB2aWRlAAAAAAAAAAAAAAAAVmlkZW9IYW5kbGVyAAAAARhtaW5mAAAAFHZtaGQAAAABAAAAAAAAAAAAAAAkZGluZgAAABxkcmVmAAAAAAAAAAEAAAAMdXJsIAAAAAEAAAEYc3RibAAAALRzdHNkAAAAAAAAAAEAAACkYXZjMQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAIAAAgASABIAABIAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY//8AAAAyYXZjQwFNQCj/4QAZZ01AKOyBQHAAAAMAEAAAAwDIPEiWWAEABmjr48siwAAAABhzdHRzAAAAAAAAAAEAAAAOAAAEAAAAABRzdHNzAAAAAAAAAAEAAAABAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAAOAAAAAQAAAFRzdHN6AAAAAAAAAAAAAAAOAAAAaAAAABMAAAATAAAAEwAAABMAAAATAAAAEwAAABMAAAATAAAAEwAAABMAAAATAAAAEwAAABMAAAAUc3RjbwAAAAAAAAABAAAAMAAAAGJ1ZHRhAAAAWm1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAALWlsc3QAAAAlqXRvbwAAAB1kYXRhAAAAAQAAAABMYXZmNTguNDUuMTAw';
       v.style.cssText='position:fixed;width:1px;height:1px;top:0;left:0;opacity:0.01;pointer-events:none;z-index:-1;';
       document.body.appendChild(v);tNoSleepVideo=v;
@@ -963,16 +962,29 @@ function tStopNoSleep(){
   try{if(tWakeLock){tWakeLock.release();tWakeLock=null;}}catch(e){}
   try{if(tNoSleepVideo){tNoSleepVideo.pause();}}catch(e){}
 }
+// バックグラウンドから復帰時にwakeLock再取得
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&tTimer.running)tStartNoSleep();
+  if(document.visibilityState==='visible'&&tTimer.running){
+    tStartNoSleep();
+    // AudioContextも再開
+    try{if(tAudioCtx&&tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}
+  }
 });
+// 30秒ごとにwakeLockを再取得（切れ対策）
+setInterval(()=>{
+  if(tTimer.running){
+    try{if('wakeLock' in navigator&&(!tWakeLock||tWakeLock.released)){navigator.wakeLock.request('screen').then(l=>{tWakeLock=l;}).catch(()=>{});}}catch(e){}
+    try{if(tNoSleepVideo&&tNoSleepVideo.paused)tNoSleepVideo.play().catch(()=>{});}catch(e){}
+  }
+},30000);
 function tPlay(){
   if(tTimer.remaining<=0)return;
-  // 最初のスタート時のみカウントダウン（残り時間が満タンの時）
-  if(tTimer.remaining===tTimer.rotaDuration&&!tTimer._started){
-    tTimer._started=true;
+  // ローテ開始時（残り時間が満タン）は毎回カウントダウン
+  // 一時停止からの再開（残り時間が満タンでない）はカウントダウンなし
+  if(tTimer.remaining===tTimer.rotaDuration){
     tStartCountdown(()=>{
       tInitAudio();tStartNoSleep();
+      try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance('');window.speechSynthesis.speak(u);}}catch(e){}
       tTimer.running=true;
       document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';
       document.getElementById('t-btn-startstop').className='btn btn-yellow';
@@ -980,6 +992,7 @@ function tPlay(){
     });
     return;
   }
+  // 一時停止からの再開
   tInitAudio();tStartNoSleep();
   try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance('');window.speechSynthesis.speak(u);}}catch(e){}
   tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);
