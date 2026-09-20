@@ -12,6 +12,9 @@
   --text:#1a1a1a;--border:#e0e0e0;--radius:10px;--radius-lg:16px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue','Segoe UI',sans-serif;background:var(--gray);color:var(--text);font-size:15px;min-height:100vh;}
+/* スリープ防止：画面を常に「使用中」に見せる */
+@keyframes nosleep{0%{opacity:.9999}100%{opacity:1}}
+#nosleep-el{position:fixed;width:1px;height:1px;top:0;left:0;animation:nosleep 1s infinite;pointer-events:none;z-index:-1;background:transparent;}
 .app{max-width:680px;margin:0 auto;padding:0 0 2rem;}
 .page{display:none;}.page.active{display:block;}
 
@@ -242,6 +245,7 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
 </style>
 </head>
 <body>
+<div id="nosleep-el"></div>
 <div class="app">
 
 <!-- ホーム -->
@@ -993,7 +997,7 @@ function tPlay(){
   try{if(window.speechSynthesis){const u=new SpeechSynthesisUtterance('');window.speechSynthesis.speak(u);}}catch(e){}
   tTimer.running=true;document.getElementById('t-btn-startstop').textContent='⏸ 一時停止';document.getElementById('t-btn-startstop').className='btn btn-yellow';tTimer.interval=setInterval(tTick,1000);
 }
-function tPause(){tTimer.running=false;clearInterval(tTimer.interval);tStopNoSleep();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';}
+function tPause(){tTimer.running=false;clearInterval(tTimer.interval);tStopNoSleep();tStopBGM();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';}
 function tTick(){tTimer.remaining--;tUpdateTimerDisplay();if(tTimer.remaining<=0){clearInterval(tTimer.interval);tTimer.running=false;if(tTimer.rota<tTimer.maxRota)tTriggerRotaEnd();else tTriggerGameEnd();return;}if(tTimer.remaining===300&&tTimer.rotaDuration>310)tPlayNotify("5min");if(tTimer.remaining===60&&tTimer.rotaDuration>70)tPlayNotify("1min");if(tTimer.remaining===30&&tTimer.rotaDuration>40)tPlayNotify("30sec");if(tTimer.remaining<=10){tPlayBeep(tTimer.remaining);const el=document.getElementById("t-timer-display");el.style.transform="scale(1.1)";el.style.transition="transform 0.1s";setTimeout(()=>{el.style.transform="scale(1)";},150);}}
 function tUpdateTimerDisplay(){
   const m=Math.floor(tTimer.remaining/60),s=tTimer.remaining%60;
@@ -1003,12 +1007,12 @@ function tUpdateTimerDisplay(){
   document.getElementById('t-rota-label').innerHTML=`ローテ <span class="rota-badge">${tTimer.rota} / ${tTimer.maxRota}</span>`;
 }
 function tNextRota(){if(tTimer.rota>=tTimer.maxRota){tTriggerGameEnd();return;}clearInterval(tTimer.interval);tTimer.running=false;tRotaLog.push([...tCounts]);tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tTimer._started=false;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
-function tResetRota(){clearInterval(tTimer.interval);tTimer.running=false;tTimer.remaining=tTimer.rotaDuration;tTimer._started=false;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
-function tTriggerRotaEnd(){tRotaLog.push([...tCounts]);tPlayAlarm(false);tFlash(3,()=>{tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tUpdateTimerDisplay();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';alert(`ローテーション ${tTimer.rota-1} 終了！\n次のローテ（${tTimer.rota}/${tTimer.maxRota}）の準備をしてください。`);});}
-function tTriggerGameEnd(){tRotaLog.push([...tCounts]);tPlayAlarm(true);tFlash(5,()=>tShowResult());}
+function tResetRota(){clearInterval(tTimer.interval);tTimer.running=false;tStopBGM();tTimer.remaining=tTimer.rotaDuration;tTimer._started=false;document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';tUpdateTimerDisplay();}
+function tTriggerRotaEnd(){tRotaLog.push([...tCounts]);tStopBGM();tPlayAlarm(false);tFlash(3,()=>{tTimer.rota++;tTimer.remaining=tTimer.rotaDuration;tUpdateTimerDisplay();document.getElementById('t-btn-startstop').textContent='▶ スタート';document.getElementById('t-btn-startstop').className='btn btn-green';alert(`ローテーション ${tTimer.rota-1} 終了！\n次のローテ（${tTimer.rota}/${tTimer.maxRota}）の準備をしてください。`);});}
+function tTriggerGameEnd(){tRotaLog.push([...tCounts]);tStopBGM();tPlayAlarm(true);tFlash(5,()=>tShowResult());}
 function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tStopNoSleep();tRotaLog.push([...tCounts]);tShowResult();}
 function tFlash(times,cb){let c=0;const iv=setInterval(()=>{document.body.classList.toggle('alarm');c++;if(c>=times*2){clearInterval(iv);document.body.classList.remove('alarm');if(cb)cb();}},300);}
-let tAudioCtx=null;
+let tAudioCtx=null;let tBGMInterval=null;let tBGMOscillators=[];
 function tInitAudio(){try{if(!tAudioCtx||tAudioCtx.state==='closed'){tAudioCtx=new(window.AudioContext||window.webkitAudioContext)();}if(tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}}
 function tPlayTone(freq,duration,volume,type){
   try{
@@ -1038,11 +1042,47 @@ function tSpeak(text){
     window.speechSynthesis.speak(u);
   }catch(e){}
 }
+function tStartBGM(){
+  // ラスト1分の緊迫BGM：ドッドッドッというリズム音
+  if(tBGMInterval)return;
+  let beat=0;
+  tBGMInterval=setInterval(()=>{
+    if(!tTimer.running){tStopBGM();return;}
+    try{
+      tInitAudio();if(!tAudioCtx)return;
+      if(tAudioCtx.state==='suspended')tAudioCtx.resume();
+      const t=tAudioCtx.currentTime;
+      // キック（低音ドン）
+      const kick=tAudioCtx.createOscillator();
+      const kg=tAudioCtx.createGain();
+      kick.connect(kg);kg.connect(tAudioCtx.destination);
+      kick.frequency.setValueAtTime(150,t);
+      kick.frequency.exponentialRampToValueAtTime(40,t+0.15);
+      kick.type='sine';
+      kg.gain.setValueAtTime(0.8,t);kg.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+      kick.start(t);kick.stop(t+0.2);
+      // 拍子が4つに1回ハイハット
+      if(beat%2===0){
+        const hh=tAudioCtx.createOscillator();
+        const hg=tAudioCtx.createGain();
+        const filter=tAudioCtx.createBiquadFilter();
+        hh.connect(filter);filter.connect(hg);hg.connect(tAudioCtx.destination);
+        hh.type='square';hh.frequency.value=8000;
+        filter.type='highpass';filter.frequency.value=7000;
+        hg.gain.setValueAtTime(0.15,t+0.01);hg.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+        hh.start(t+0.01);hh.stop(t+0.08);
+      }
+      beat++;
+    }catch(e){}
+  },400);
+}
+function tStopBGM(){
+  if(tBGMInterval){clearInterval(tBGMInterval);tBGMInterval=null;}
+}
 function tPlayNotify(type){
   try{
     tInitAudio();
     if(!tAudioCtx)return;
-    // AudioContextが停止していたら再開
     if(tAudioCtx.state==='suspended')tAudioCtx.resume();
     if(type==='5min'){
       tPlayTone(880,0.3,0.7,'sine');
@@ -1053,6 +1093,8 @@ function tPlayNotify(type){
       setTimeout(()=>tPlayTone(1047,0.35,0.8,'sine'),280);
       setTimeout(()=>tSpeak('残り1分です'),600);
       try{if(navigator.vibrate)navigator.vibrate([100,80,200]);}catch(e){}
+      // ラスト1分BGM開始
+      setTimeout(()=>tStartBGM(),700);
     } else if(type==='30sec'){
       tPlayTone(1047,0.15,0.8,'sine');
       setTimeout(()=>tPlayTone(1047,0.15,0.8,'sine'),180);
@@ -1121,7 +1163,21 @@ function tRenderPlayers(){
       </div>
     </div>`;}).join('');
 }
-function tAdd(i){tCounts[i]++;document.getElementById('t-pc-'+i).textContent=tCounts[i];tRerank();}
+function tAdd(i){
+  tCounts[i]++;document.getElementById('t-pc-'+i).textContent=tCounts[i];tRerank();
+  // カウント効果音（ピッ）
+  try{
+    tInitAudio();if(tAudioCtx){
+      const osc=tAudioCtx.createOscillator(),gain=tAudioCtx.createGain();
+      osc.connect(gain);gain.connect(tAudioCtx.destination);
+      osc.frequency.value=1200;osc.type='sine';
+      const t=tAudioCtx.currentTime;
+      gain.gain.setValueAtTime(0.4,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.08);
+      osc.start(t);osc.stop(t+0.08);
+    }
+  }catch(e){}
+  try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
+}
 function tSub(i){if(tCounts[i]<=0)return;tCounts[i]--;document.getElementById('t-pc-'+i).textContent=tCounts[i];tRerank();}
 function tRerank(){const sorted=[...tCounts.map((c,i)=>({i,count:c}))].sort((a,b)=>b.count-a.count);tCounts.forEach((_,i)=>{const rank=sorted.findIndex(s=>s.i===i)+1;const el=document.getElementById('t-pr-'+i);if(el){el.textContent=rank;el.className='player-rank'+(rank===1?' gold':rank===2?' silver':rank===3?' bronze':'');}});}
 function tShowResult(){
