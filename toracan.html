@@ -1043,38 +1043,43 @@ function tSpeak(text){
   }catch(e){}
 }
 function tStartBGM(){
-  // ラスト1分の緊迫BGM：ドッドッドッというリズム音
   if(tBGMInterval)return;
   let beat=0;
-  tBGMInterval=setInterval(()=>{
+  function playBeat(){
     if(!tTimer.running){tStopBGM();return;}
     try{
-      tInitAudio();if(!tAudioCtx)return;
-      if(tAudioCtx.state==='suspended')tAudioCtx.resume();
+      // AudioContextが止まっていたら強制再開
+      if(!tAudioCtx)tInitAudio();
+      if(tAudioCtx.state==='suspended'||tAudioCtx.state==='interrupted'){
+        tAudioCtx.resume().then(()=>doPlayBeat());
+        return;
+      }
+      doPlayBeat();
+    }catch(e){}
+  }
+  function doPlayBeat(){
+    try{
       const t=tAudioCtx.currentTime;
       // キック（低音ドン）
-      const kick=tAudioCtx.createOscillator();
-      const kg=tAudioCtx.createGain();
+      const kick=tAudioCtx.createOscillator(),kg=tAudioCtx.createGain();
       kick.connect(kg);kg.connect(tAudioCtx.destination);
-      kick.frequency.setValueAtTime(150,t);
-      kick.frequency.exponentialRampToValueAtTime(40,t+0.15);
+      kick.frequency.setValueAtTime(150,t);kick.frequency.exponentialRampToValueAtTime(40,t+0.15);
       kick.type='sine';
-      kg.gain.setValueAtTime(0.8,t);kg.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-      kick.start(t);kick.stop(t+0.2);
-      // 拍子が4つに1回ハイハット
-      if(beat%2===0){
-        const hh=tAudioCtx.createOscillator();
-        const hg=tAudioCtx.createGain();
-        const filter=tAudioCtx.createBiquadFilter();
+      kg.gain.setValueAtTime(0.9,t);kg.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+      kick.start(t);kick.stop(t+0.25);
+      // 裏拍ハイハット
+      if(beat%2===1){
+        const hh=tAudioCtx.createOscillator(),hg=tAudioCtx.createGain(),filter=tAudioCtx.createBiquadFilter();
         hh.connect(filter);filter.connect(hg);hg.connect(tAudioCtx.destination);
-        hh.type='square';hh.frequency.value=8000;
-        filter.type='highpass';filter.frequency.value=7000;
-        hg.gain.setValueAtTime(0.15,t+0.01);hg.gain.exponentialRampToValueAtTime(0.001,t+0.08);
-        hh.start(t+0.01);hh.stop(t+0.08);
+        hh.type='square';hh.frequency.value=8000;filter.type='highpass';filter.frequency.value=7000;
+        hg.gain.setValueAtTime(0.2,t+0.005);hg.gain.exponentialRampToValueAtTime(0.001,t+0.07);
+        hh.start(t+0.005);hh.stop(t+0.07);
       }
       beat++;
     }catch(e){}
-  },400);
+  }
+  tBGMInterval=setInterval(playBeat,380);
+  playBeat(); // 最初の1回を即再生
 }
 function tStopBGM(){
   if(tBGMInterval){clearInterval(tBGMInterval);tBGMInterval=null;}
@@ -1167,13 +1172,15 @@ function tAdd(i){
   tCounts[i]++;document.getElementById('t-pc-'+i).textContent=tCounts[i];tRerank();
   // カウント効果音（ピッ）
   try{
-    tInitAudio();if(tAudioCtx){
+    tInitAudio();
+    if(tAudioCtx){
+      if(tAudioCtx.state==='suspended'||tAudioCtx.state==='interrupted')tAudioCtx.resume();
       const osc=tAudioCtx.createOscillator(),gain=tAudioCtx.createGain();
       osc.connect(gain);gain.connect(tAudioCtx.destination);
       osc.frequency.value=1200;osc.type='sine';
-      const t=tAudioCtx.currentTime;
-      gain.gain.setValueAtTime(0.4,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.08);
-      osc.start(t);osc.stop(t+0.08);
+      const t=tAudioCtx.currentTime+0.01;
+      gain.gain.setValueAtTime(0.5,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.1);
+      osc.start(t);osc.stop(t+0.1);
     }
   }catch(e){}
   try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
