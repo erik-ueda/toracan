@@ -966,9 +966,16 @@ function tStopNoSleep(){
   try{if(tNoSleepVideo){tNoSleepVideo.pause();}}catch(e){}
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'&&tTimer.running){
-    tStartNoSleep();
-    try{if(tAudioCtx&&tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}
+  if(document.visibilityState==='visible'){
+    // 試合中なら全部再開
+    if(tTimer.running){
+      try{if(tNoSleepVideo)tNoSleepVideo.play().catch(()=>{});}catch(e){}
+      try{if('wakeLock' in navigator){navigator.wakeLock.request('screen').then(l=>{tWakeLock=l;}).catch(()=>{});}}catch(e){}
+      try{if(tAudioCtx&&tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}
+    }
+  } else {
+    // バックグラウンド時も動画は止めない（スリープ防止のため）
+    try{if(tNoSleepVideo&&tTimer.running)tNoSleepVideo.play().catch(()=>{});}catch(e){}
   }
 });
 setInterval(()=>{
@@ -1046,6 +1053,8 @@ function tStartBGM(){
   if(tBGMInterval)return;
   function playBeat(){
     if(!tTimer.running){tStopBGM();return;}
+    // 動画が止まっていたら再生し直す
+    try{if(tNoSleepVideo&&tNoSleepVideo.paused)tNoSleepVideo.play().catch(()=>{});}catch(e){}
     try{
       if(!tAudioCtx)tInitAudio();
       if(tAudioCtx.state==='suspended'||tAudioCtx.state==='interrupted'){
