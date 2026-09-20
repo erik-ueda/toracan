@@ -1044,15 +1044,12 @@ function tSpeak(text){
 }
 function tStartBGM(){
   if(tBGMInterval)return;
-  let beat=0;
   function playBeat(){
     if(!tTimer.running){tStopBGM();return;}
     try{
-      // AudioContextが止まっていたら強制再開
       if(!tAudioCtx)tInitAudio();
       if(tAudioCtx.state==='suspended'||tAudioCtx.state==='interrupted'){
-        tAudioCtx.resume().then(()=>doPlayBeat());
-        return;
+        tAudioCtx.resume().then(()=>doPlayBeat());return;
       }
       doPlayBeat();
     }catch(e){}
@@ -1060,26 +1057,24 @@ function tStartBGM(){
   function doPlayBeat(){
     try{
       const t=tAudioCtx.currentTime;
-      // キック（低音ドン）
-      const kick=tAudioCtx.createOscillator(),kg=tAudioCtx.createGain();
-      kick.connect(kg);kg.connect(tAudioCtx.destination);
-      kick.frequency.setValueAtTime(150,t);kick.frequency.exponentialRampToValueAtTime(40,t+0.15);
-      kick.type='sine';
-      kg.gain.setValueAtTime(0.9,t);kg.gain.exponentialRampToValueAtTime(0.001,t+0.25);
-      kick.start(t);kick.stop(t+0.25);
-      // 裏拍ハイハット
-      if(beat%2===1){
-        const hh=tAudioCtx.createOscillator(),hg=tAudioCtx.createGain(),filter=tAudioCtx.createBiquadFilter();
-        hh.connect(filter);filter.connect(hg);hg.connect(tAudioCtx.destination);
-        hh.type='square';hh.frequency.value=8000;filter.type='highpass';filter.frequency.value=7000;
-        hg.gain.setValueAtTime(0.2,t+0.005);hg.gain.exponentialRampToValueAtTime(0.001,t+0.07);
-        hh.start(t+0.005);hh.stop(t+0.07);
-      }
-      beat++;
+      // ドックン：1拍目（強め）
+      const k1=tAudioCtx.createOscillator(),g1=tAudioCtx.createGain();
+      k1.connect(g1);g1.connect(tAudioCtx.destination);
+      k1.frequency.setValueAtTime(80,t);k1.frequency.exponentialRampToValueAtTime(30,t+0.2);
+      k1.type='sine';
+      g1.gain.setValueAtTime(1.0,t);g1.gain.exponentialRampToValueAtTime(0.001,t+0.25);
+      k1.start(t);k1.stop(t+0.25);
+      // クン：2拍目（弱め、0.3秒後）
+      const k2=tAudioCtx.createOscillator(),g2=tAudioCtx.createGain();
+      k2.connect(g2);g2.connect(tAudioCtx.destination);
+      k2.frequency.setValueAtTime(60,t+0.3);k2.frequency.exponentialRampToValueAtTime(25,t+0.48);
+      k2.type='sine';
+      g2.gain.setValueAtTime(0.5,t+0.3);g2.gain.exponentialRampToValueAtTime(0.001,t+0.48);
+      k2.start(t+0.3);k2.stop(t+0.48);
     }catch(e){}
   }
-  tBGMInterval=setInterval(playBeat,380);
-  playBeat(); // 最初の1回を即再生
+  tBGMInterval=setInterval(playBeat,900);
+  playBeat();
 }
 function tStopBGM(){
   if(tBGMInterval){clearInterval(tBGMInterval);tBGMInterval=null;}
@@ -1098,14 +1093,15 @@ function tPlayNotify(type){
       setTimeout(()=>tPlayTone(1047,0.35,0.8,'sine'),280);
       setTimeout(()=>tSpeak('残り1分です'),600);
       try{if(navigator.vibrate)navigator.vibrate([100,80,200]);}catch(e){}
-      // ラスト1分BGM開始
-      setTimeout(()=>tStartBGM(),700);
+
     } else if(type==='30sec'){
       tPlayTone(1047,0.15,0.8,'sine');
       setTimeout(()=>tPlayTone(1047,0.15,0.8,'sine'),180);
       setTimeout(()=>tPlayTone(1319,0.25,0.9,'sine'),360);
       setTimeout(()=>tSpeak('残り30秒です'),600);
       try{if(navigator.vibrate)navigator.vibrate([80,60,80,60,150]);}catch(e){}
+      // ラスト30秒BGM開始
+      setTimeout(()=>tStartBGM(),700);
     }
   }catch(e){}
 }
