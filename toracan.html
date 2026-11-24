@@ -540,6 +540,15 @@ body.alarm{animation:flashbg .4s ease-in-out infinite;}
         </div>
         <div id="t-player-inputs"></div>
       </div>
+      <div class="card">
+        <div class="slabel" style="margin-top:0">登録選手</div>
+        <div style="font-size:11px;color:var(--gray3);margin-bottom:8px">登録しておくと、上の「登録から」で選べます。試合開始時に手入力した名前も自動で登録されます。</div>
+        <div id="t-roster-list" style="margin-bottom:6px"></div>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="t-roster-input" placeholder="名前を追加" style="flex:1" onkeydown="if(event.key==='Enter')tAddRoster()"/>
+          <button class="btn btn-sm" onclick="tAddRoster()">+ 登録</button>
+        </div>
+      </div>
       <button class="btn btn-red" style="width:100%;padding:13px;font-size:15px" onclick="tStart()">▶ 開始する</button>
       <div style="margin-top:10px"><button class="btn btn-sm" onclick="tShowHistory()">📋 大会履歴</button></div>
     </div>
@@ -892,14 +901,53 @@ let tTimer={total:0,rotaDuration:0,remaining:0,rota:1,maxRota:3,running:false,in
 let tCounts=[],tHistory=[],tRotaLog=[];
 function tLoadHistory(){try{const d=localStorage.getItem('toracan_t');if(d)tHistory=JSON.parse(d);}catch(e){}}
 function tSaveHistory(){try{localStorage.setItem('toracan_t',JSON.stringify(tHistory));}catch(e){}}
-function tRenderPlayerInputs(){document.getElementById('t-player-inputs').innerHTML=tPlayers.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px"><span style="width:20px;height:20px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span><input type="text" value="${esc(p.name)}" placeholder="選手名" oninput="tPlayers[${i}].name=this.value" style="flex:1"/></div>`).join('');}
+function tRenderPlayerInputs(){
+  document.getElementById('t-player-inputs').innerHTML=tPlayers.map((p,i)=>{
+    const opts=tRoster.map(n=>`<option value="${esc(n)}"${p.name===n?' selected':''}>${esc(n)}</option>`).join('');
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:7px">
+      <span style="width:20px;height:20px;border-radius:50%;background:var(--black);color:var(--white);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i+1}</span>
+      ${tRoster.length?`<select onchange="tPickPlayer(${i},this.value)" style="width:96px;flex-shrink:0;font-size:12px;padding:8px 4px"><option value="">登録から</option>${opts}</select>`:''}
+      <input type="text" value="${esc(p.name)}" placeholder="選手名" oninput="tPlayers[${i}].name=this.value" style="flex:1;min-width:0"/>
+    </div>`;}).join('');
+}
+function tPickPlayer(i,name){if(!name)return;tPlayers[i].name=name;tRenderPlayerInputs();}
+
+// ══ 登録選手 ══
+let tRoster=[];
+function tLoadRoster(){try{const d=localStorage.getItem('toracan_roster');if(d)tRoster=JSON.parse(d);}catch(e){}}
+function tSaveRoster(){try{localStorage.setItem('toracan_roster',JSON.stringify(tRoster));}catch(e){}}
+function tRenderRoster(){
+  const el=document.getElementById('t-roster-list');if(!el)return;
+  el.innerHTML=tRoster.length?tRoster.map(n=>`<span style="display:inline-flex;align-items:center;gap:6px;background:var(--gray);border:1px solid var(--border);border-radius:999px;padding:4px 6px 4px 12px;font-size:13px;font-weight:600;margin:0 6px 6px 0">${esc(n)}<button onclick="tDeleteRoster(this.dataset.n)" data-n="${esc(n)}" style="border:none;background:#ddd;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:12px;line-height:1;color:#666">✕</button></span>`).join(''):'<span style="font-size:12px;color:var(--gray3)">まだ登録がありません</span>';
+  tRenderPlayerInputs();
+}
+function tAddRoster(){
+  const inp=document.getElementById('t-roster-input');const name=inp.value.trim();
+  if(!name)return;
+  if(!tRoster.includes(name)){tRoster.push(name);tSaveRoster();}
+  inp.value='';tRenderRoster();
+}
+function tDeleteRoster(name){
+  tRoster=tRoster.filter(n=>n!==name);tSaveRoster();tRenderRoster();
+}
+function tAutoRegisterPlayers(){
+  // 試合開始時、手入力した名前を自動で登録（「選手1」などの初期名は除く）
+  let changed=false;
+  tPlayers.forEach(p=>{
+    const n=(p.name||'').trim();
+    if(n&&!/^選手\d+$/.test(n)&&!tRoster.includes(n)){tRoster.push(n);changed=true;}
+  });
+  if(changed){tSaveRoster();tRenderRoster();}
+}
 function tAddPlayer(){if(tPlayers.length>=5)return;tPlayers.push({name:'選手'+(tPlayers.length+1)});tRenderPlayerInputs();}
 function tRemovePlayer(){if(tPlayers.length<=2)return;tPlayers.pop();tRenderPlayerInputs();}
 function tUpdateRotaPreview(){const dur=parseInt(document.getElementById('t-duration').value)||30;const rota=parseInt(document.getElementById('t-rota').value)||1;document.getElementById('t-rota-preview').textContent=`1ローテ = 約${Math.floor(dur/rota)}分`;}
 document.getElementById('t-duration').addEventListener('input',tUpdateRotaPreview);
 document.getElementById('t-rota').addEventListener('input',tUpdateRotaPreview);
 function tStart(){
+  tResetAudio();
   document.querySelectorAll('#t-player-inputs input').forEach((inp,i)=>{if(tPlayers[i])tPlayers[i].name=inp.value.trim()||'選手'+(i+1);});
+  tAutoRegisterPlayers();
   const dur=parseInt(document.getElementById('t-duration').value)||30;const maxRota=parseInt(document.getElementById('t-rota').value)||1;
   const rotaSec=Math.floor(dur*60/maxRota);
   tTimer={total:dur*60,rotaDuration:rotaSec,remaining:rotaSec,rota:1,maxRota,running:false,interval:null};
@@ -971,7 +1019,7 @@ document.addEventListener('visibilitychange',()=>{
     if(tTimer.running){
       try{if(tNoSleepVideo)tNoSleepVideo.play().catch(()=>{});}catch(e){}
       try{if('wakeLock' in navigator){navigator.wakeLock.request('screen').then(l=>{tWakeLock=l;}).catch(()=>{});}}catch(e){}
-      try{if(tAudioCtx&&tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}
+      try{if(tAudioCtx&&tAudioCtx.state!=='running')tAudioCtx.resume();}catch(e){}
     }
   } else {
     // バックグラウンド時も動画は止めない（スリープ防止のため）
@@ -1020,7 +1068,23 @@ function tTriggerGameEnd(){tRotaLog.push([...tCounts]);tPlayAlarm(true);tFlash(5
 function tEndGame(){if(!confirm('試合を終了しますか？'))return;clearInterval(tTimer.interval);tTimer.running=false;tStopNoSleep();tRotaLog.push([...tCounts]);tShowResult();}
 function tFlash(times,cb){let c=0;const iv=setInterval(()=>{document.body.classList.toggle('alarm');c++;if(c>=times*2){clearInterval(iv);document.body.classList.remove('alarm');if(cb)cb();}},300);}
 let tAudioCtx=null;
-function tInitAudio(){try{if(!tAudioCtx||tAudioCtx.state==='closed'){tAudioCtx=new(window.AudioContext||window.webkitAudioContext)();}if(tAudioCtx.state==='suspended')tAudioCtx.resume();}catch(e){}}
+function tInitAudio(){
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!tAudioCtx||tAudioCtx.state==='closed'){tAudioCtx=new AC();}
+    // suspended / interrupted など running 以外は全て復帰を試みる（iPhone対策）
+    if(tAudioCtx.state!=='running'){tAudioCtx.resume().catch(()=>{});}
+    // 無音を1回鳴らして音声出力を確実にアンロック
+    const b=tAudioCtx.createBuffer(1,1,22050);const s=tAudioCtx.createBufferSource();
+    s.buffer=b;s.connect(tAudioCtx.destination);s.start(0);
+  }catch(e){}
+}
+function tResetAudio(){
+  // 新しい試合を始めるたびにオーディオを作り直す（ユーザー操作中に呼ぶ）
+  try{if(tAudioCtx){tAudioCtx.close();}}catch(e){}
+  tAudioCtx=null;
+  tInitAudio();
+}
 function tPlayTone(freq,duration,volume,type){
   try{
     tInitAudio();if(!tAudioCtx)return;
@@ -1054,7 +1118,7 @@ function tPlayNotify(type){
   try{
     tInitAudio();
     if(!tAudioCtx)return;
-    if(tAudioCtx.state==='suspended')tAudioCtx.resume();
+    if(tAudioCtx.state!=='running')tAudioCtx.resume();
     if(type==='5min'){
       tPlayTone(880,0.3,0.7,'sine');
       setTimeout(()=>tSpeak('残り5分です'),400);
@@ -1078,7 +1142,7 @@ function tPlayNotify(type){
 function tPlayAlarm(isEnd){
   try{
     tInitAudio();if(!tAudioCtx)return;
-    if(tAudioCtx.state==='suspended')tAudioCtx.resume();
+    if(tAudioCtx.state!=='running')tAudioCtx.resume();
     const t=tAudioCtx.currentTime+0.05;
     if(isEnd){
       // バスケブザー：低めのノコギリ波で「ビーーー！」2.5秒
@@ -1384,6 +1448,7 @@ function doBackup(){
       fishing:localStorage.getItem('toracan_f')||'',
       tournament:localStorage.getItem('toracan_t')||'',
       counter:localStorage.getItem('toracan_sc')||'',
+      roster:localStorage.getItem('toracan_roster')||'',
     };
     const str='TORACAN_BACKUP_'+Date.now()+'_'+JSON.stringify(data);
     // クリップボードにコピー
@@ -1418,6 +1483,7 @@ function doRestore(){
     if(data.fishing)localStorage.setItem('toracan_f',data.fishing);
     if(data.tournament)localStorage.setItem('toracan_t',data.tournament);
     if(data.counter)localStorage.setItem('toracan_sc',data.counter);
+    if(data.roster)localStorage.setItem('toracan_roster',data.roster);
     alert('✅ 復元しました！ページを再読み込みします。');
     location.reload();
   }catch(e){alert('復元に失敗しました。バックアップ文字列が正しいか確認してください。');}
@@ -1432,7 +1498,7 @@ fLoad();tLoadHistory();scLoadRecords();
 tCreateNoSleepVideo();
 document.getElementById('f-s-date').value=fTodayStr();
 fRenderManageTab();fRenderSessionList();
-tRenderPlayerInputs();tUpdateRotaPreview();
+tLoadRoster();tRenderPlayerInputs();tRenderRoster();tUpdateRotaPreview();
 const _n=new Date(),_p=v=>String(v).padStart(2,'0');
 document.getElementById('t-date').value=`${_n.getFullYear()}-${_p(_n.getMonth()+1)}-${_p(_n.getDate())}`;
 
